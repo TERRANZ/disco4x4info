@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="obd_protocol">obd_protocol</string>
+    <string-array name="protocolsNamesArray">
+        <item>AUTO</item>
+        <item>SAE_J1850_PWM</item>
+        <item>SAE_J1850_VPW</item>
+        <item>ISO_9141_2</item>
+        <item>ISO_14230_4_KWP</item>
+        <item>ISO_14230_4_KWP_FAST</item>
+        <item>ISO_15765_4_CAN</item>
+        <item>ISO_15765_4_CAN_B</item>
+        <item>ISO_15765_4_CAN_C</item>
+        <item>ISO_15765_4_CAN_D</item>
+        <item>SAE_J1939_CAN</item>
+        <item>USER1_CAN</item>
+        <item>USER2_CAN</item>
+    </string-array>
+
+    <string-array name="protocolsArray">
+        <item>AUTO</item>
+        <item>SAE_J1850_PWM</item>
+        <item>SAE_J1850_VPW</item>
+        <item>ISO_9141_2</item>
+        <item>ISO_14230_4_KWP</item>
+        <item>ISO_14230_4_KWP_FAST</item>
+        <item>ISO_15765_4_CAN</item>
+        <item>ISO_15765_4_CAN_B</item>
+        <item>ISO_15765_4_CAN_C</item>
+        <item>ISO_15765_4_CAN_D</item>
+        <item>SAE_J1939_CAN</item>
+        <item>USER1_CAN</item>
+        <item>USER2_CAN</item>
+    </string-array>
+</resources>

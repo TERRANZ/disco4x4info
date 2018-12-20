@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DiscoSuspension</string>
+    <string name="auto_connect">Auto Connect</string>
+    <string name="title_activity_disco_acitivity">DiscoAcitivity</string>
+</resources>
