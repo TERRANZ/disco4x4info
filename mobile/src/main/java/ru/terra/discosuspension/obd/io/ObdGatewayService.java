@@ -73,14 +73,11 @@ public class ObdGatewayService extends AbstractGatewayService {
             ObdCommandJob job = null;
             try {
                 job = jobsQueue.take();
-
                 // log job
                 Logger.d(this, TAG, "Taking job[" + job.getId() + "] from queue..");
-
                 if (job.getState().equals(ObdCommandJob.ObdCommandJobState.NEW)) {
                     Logger.d(this, TAG, "Job state is NEW. Run it..");
                     job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
-//                    job.getCommand().run(sock.getInputStream(), sock.getOutputStream());
                     connectionHelper.executeCommand(job.getCommand(), ctx);
                 } else
                     // log not new job

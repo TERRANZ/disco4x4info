@@ -15,11 +15,9 @@ import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.activity.DiscoAcitivity;
 import ru.terra.discosuspension.obd.commands.AmbientAirTemperatureObdCommand;
-import ru.terra.discosuspension.obd.commands.EchoOffObdCommand;
-import ru.terra.discosuspension.obd.commands.LineFeedOffCommand;
+import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
-import ru.terra.discosuspension.obd.commands.TimeoutObdCommand;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
 
 /**
@@ -103,11 +101,8 @@ public class BtObdConnectionHelper {
         Logger.d(context, TAG, "Queing jobs for connection configuration..");
         if (executeCommand(new ObdResetFixCommand(), runContext)) {
             sendStatus("Сброс адаптера");
-            if (executeCommand(new EchoOffObdCommand(), runContext))
-                if (executeCommand(new EchoOffObdCommand(), runContext))
-                    if (executeCommand(new LineFeedOffCommand(), runContext))
-                        if (executeCommand(new TimeoutObdCommand(62), runContext))
-                            connectionStatus = ConnectionStatus.RESETTED;
+            if (executeCommand(new DisplayHeaderCommand(), runContext))
+                connectionStatus = ConnectionStatus.RESETTED;
         }
 
     }

@@ -1,6 +1,7 @@
 package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
+import ru.terra.discosuspension.obd.io.helper.HexUtil;
 
 public class RearDiffBlockCommand extends ObdProtocolCommand {
     public RearDiffBlockCommand() {
@@ -9,7 +10,8 @@ public class RearDiffBlockCommand extends ObdProtocolCommand {
 
     @Override
     public String getFormattedResult() {
-        return getResult();
+        final Integer result = HexUtil.extractDigitA(getResult());
+        return result == 1 ? "ON" : "OFF";
     }
 
     @Override
