@@ -3,7 +3,9 @@ package ru.terra.discosuspension.obd.commands.disco3;
 import android.util.Log;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
-import ru.terra.discosuspension.obd.io.helper.HexUtil;
+
+import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitA;
+import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitB;
 
 public class SuspensionHeightCommand extends ObdProtocolCommand {
     public static final String FRONT_LEFT = "3";
@@ -20,9 +22,10 @@ public class SuspensionHeightCommand extends ObdProtocolCommand {
     @Override
     public String getFormattedResult() {
         try {
-            final int A = HexUtil.extractDigitA(getResult());
-            final int B = HexUtil.extractDigitB(getResult());
-            return String.valueOf((A * 256 + B) / 10 - 20);
+            final int A = extractDigitA(getResult());
+            final int B = extractDigitB(getResult());
+            double res = (double) (A * 256 + B) / 10 - 20;
+            return String.format("%.1f", res);
         } catch (Exception e) {
             Log.e(this.getClass().getCanonicalName(), "Unable to calculate: ", e);
             return getResult();

@@ -32,7 +32,7 @@ public class DiscoAcitivity extends AppCompatActivity {
     private boolean isServiceBound;
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
     private SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(ControlModuleIDs.REAR_DIFF_CONTROL_MODULE);
-    private SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(ControlModuleIDs.REAR_DIFF_CONTROL_MODULE);
+    private SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(ControlModuleIDs.SUSPENSION_CONTROL_MODULE);
 
     private TextView tvRDTemp, tvRDBlock, tv_fl, tv_fr, tv_rl, tv_rr;
 
@@ -72,8 +72,8 @@ public class DiscoAcitivity extends AppCompatActivity {
                         sleep50();
                         service.queueJob(new ObdCommandJob(new RearDiffTempCommand()));
                         sleep50();
-                        service.queueJob(new ObdCommandJob(scmcRearDiff));
-                        sleep50();
+//                        service.queueJob(new ObdCommandJob(scmcRearDiff));
+//                        sleep50();
                         service.queueJob(new ObdCommandJob(new RearDiffBlockCommand()));
                         sleep50();
                         //suspension
@@ -81,10 +81,16 @@ public class DiscoAcitivity extends AppCompatActivity {
                         sleep50();
                         service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT)));
                         sleep50();
+//                        service.queueJob(new ObdCommandJob(scmcSuspension));
+//                        sleep50();
                         service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT)));
                         sleep50();
+//                        service.queueJob(new ObdCommandJob(scmcSuspension));
+//                        sleep50();
                         service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT)));
                         sleep50();
+//                        service.queueJob(new ObdCommandJob(scmcSuspension));
+//                        sleep50();
                         service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT)));
                         sleep50();
                     }
