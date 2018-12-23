@@ -22,14 +22,17 @@ public class SuspensionHeightCommand extends ObdProtocolCommand {
     @Override
     public String getFormattedResult() {
         try {
-            final int A = extractDigitA(getResult());
-            final int B = extractDigitB(getResult());
-            double res = (double) (A * 256 + B) / 10 - 20;
-            return String.format("%.1f", res);
+            return String.format("%.1f", calc());
         } catch (Exception e) {
             Log.e(this.getClass().getCanonicalName(), "Unable to calculate: ", e);
             return getResult();
         }
+    }
+
+    public double calc() {
+        final int A = extractDigitA(getResult());
+        final int B = extractDigitB(getResult());
+        return (double) (A * 256 + B) / 10 - 20;
     }
 
     @Override
