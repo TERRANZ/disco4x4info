@@ -44,6 +44,7 @@ public class DiscoAcitivity extends AppCompatActivity {
     private SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(ControlModuleIDs.GEARBOX_CONTROL_MODULE);
 
     private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len;
+    private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
 
@@ -140,7 +141,7 @@ public class DiscoAcitivity extends AppCompatActivity {
 
     private static void sleep50() {
         try {
-            Thread.sleep(50);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -159,11 +160,15 @@ public class DiscoAcitivity extends AppCompatActivity {
         tv_tc_rot = findViewById(R.id.tv_tc_rot);
         tv_tc_sol_len = findViewById(R.id.tv_tc_sol_pos);
 
-
         pb_front_left = findViewById(R.id.pb_front_left);
         pb_front_right = findViewById(R.id.pb_front_right);
         pb_rear_left = findViewById(R.id.pb_rear_left);
         pb_rear_right = findViewById(R.id.pb_rear_right);
+
+        tv_w_fl = findViewById(R.id.tv_w_fl);
+        tv_w_fr = findViewById(R.id.tv_w_fr);
+        tv_w_rl = findViewById(R.id.tv_w_rl);
+        tv_w_rr = findViewById(R.id.tv_w_rr);
 
         iv_rear_diff_lock = findViewById(R.id.iv_rear_diff_lock);
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
@@ -238,18 +243,22 @@ public class DiscoAcitivity extends AppCompatActivity {
                 switch (shc.getWheel()) {
                     case SuspensionHeightCommand.FRONT_LEFT: {
                         pb_front_left.setProgress((int) (shc.calc() + 10));
+                        tv_w_fl.setText(cmd.getFormattedResult());
                     }
                     break;
                     case SuspensionHeightCommand.FRONT_RIGHT: {
                         pb_front_right.setProgress((int) (shc.calc() + 10));
+                        tv_w_fr.setText(cmd.getFormattedResult());
                     }
                     break;
                     case SuspensionHeightCommand.REAR_LEFT: {
                         pb_rear_left.setProgress((int) (shc.calc() + 10));
+                        tv_w_rl.setText(cmd.getFormattedResult());
                     }
                     break;
                     case SuspensionHeightCommand.REAR_RIGHT: {
                         pb_rear_right.setProgress((int) (shc.calc() + 10));
+                        tv_w_rr.setText(cmd.getFormattedResult());
                     }
                     break;
 
