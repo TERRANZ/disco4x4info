@@ -83,13 +83,13 @@ public class DiscoAcitivity extends AppCompatActivity {
                 if (service.getCurrentQueueSize() == 0)
                     if (isServiceBound) {
                         //Rear diff
-//                        addRDCMCommands();
+                        addRDCMCommands();
                         //suspension
-//                        addSuspensionCommands();
+                        addSuspensionCommands();
                         //transfer case
                         addTCComamnds();
                         //gearbox
-//                        addGearBoxCommands();
+                        addGearBoxCommands();
                     }
             }
             new Handler().postDelayed(mQueueCommands, 500);
