@@ -26,6 +26,8 @@ import ru.terra.discosuspension.obd.commands.disco3.RearDiffBlockCommand;
 import ru.terra.discosuspension.obd.commands.disco3.RearDiffTempCommand;
 import ru.terra.discosuspension.obd.commands.disco3.SelectControlModuleCommand;
 import ru.terra.discosuspension.obd.commands.disco3.SuspensionHeightCommand;
+import ru.terra.discosuspension.obd.commands.disco3.TransferCaseRotEngCommand;
+import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
 import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdCommandJob;
@@ -41,9 +43,13 @@ public class DiscoAcitivity extends AppCompatActivity {
     private SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE);
     private SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(ControlModuleIDs.GEARBOX_CONTROL_MODULE);
 
-    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear;
+    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
+
+    private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
+    private final static long SUSP_REQ_DIFF = 10000;
+    private final static long GB_REQ_DIFF = 10000;
 
     private interface CommandHandler {
         void handle(ObdCommand cmd);
@@ -76,41 +82,61 @@ public class DiscoAcitivity extends AppCompatActivity {
                     }
                 if (service.getCurrentQueueSize() == 0)
                     if (isServiceBound) {
-                        //RDCM
-                        service.queueJob(new ObdCommandJob(scmcRearDiff));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new RearDiffTempCommand()));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new RearDiffBlockCommand()));
-                        sleep50();
+                        //Rear diff
+//                        addRDCMCommands();
                         //suspension
-                        service.queueJob(new ObdCommandJob(scmcSuspension));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT)));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT)));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT)));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT)));
-                        sleep50();
+//                        addSuspensionCommands();
                         //transfer case
-                        service.queueJob(new ObdCommandJob(scmcTC));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new TransferCaseTempCommand()));
-                        sleep50();
+                        addTCComamnds();
                         //gearbox
-                        service.queueJob(new ObdCommandJob(scmcGearBox));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new CurrentGearCommand()));
-                        sleep50();
-                        service.queueJob(new ObdCommandJob(new GearBoxTempCommand()));
-                        sleep50();
+//                        addGearBoxCommands();
                     }
             }
             new Handler().postDelayed(mQueueCommands, 500);
         }
     };
+
+    private void addRDCMCommands() {
+        //RDCM
+        service.queueJob(new ObdCommandJob(scmcRearDiff));
+        sleep50();
+        service.queueJob(new ObdCommandJob(new RearDiffTempCommand()));
+        service.queueJob(new ObdCommandJob(new RearDiffBlockCommand()));
+        sleep50();
+    }
+
+    private void addSuspensionCommands() {
+        if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
+            service.queueJob(new ObdCommandJob(scmcSuspension));
+            sleep50();
+            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT)));
+            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT)));
+            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT)));
+            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT)));
+            sleep50();
+            lastSuspensionRequest = System.currentTimeMillis();
+        }
+    }
+
+    private void addTCComamnds() {
+        service.queueJob(new ObdCommandJob(scmcTC));
+        sleep50();
+        service.queueJob(new ObdCommandJob(new TransferCaseTempCommand()));
+        service.queueJob(new ObdCommandJob(new TransferCaseRotEngCommand()));
+        service.queueJob(new ObdCommandJob(new TransferCaseSolenoidPositionCommand()));
+        sleep50();
+    }
+
+    private void addGearBoxCommands() {
+        if (System.currentTimeMillis() - lastGBRequest > GB_REQ_DIFF) {
+            service.queueJob(new ObdCommandJob(scmcGearBox));
+            sleep50();
+            service.queueJob(new ObdCommandJob(new CurrentGearCommand()));
+            service.queueJob(new ObdCommandJob(new GearBoxTempCommand()));
+            sleep50();
+            lastGBRequest = System.currentTimeMillis();
+        }
+    }
 
     private static void sleep50() {
         try {
@@ -130,6 +156,9 @@ public class DiscoAcitivity extends AppCompatActivity {
         tv_rd_temp = findViewById(R.id.tv_rd_temp);
         tv_gear = findViewById(R.id.tv_gear);
         tv_curr_gear = findViewById(R.id.tv_curr_gear);
+        tv_tc_rot = findViewById(R.id.tv_tc_rot);
+        tv_tc_sol_len = findViewById(R.id.tv_tc_sol_pos);
+
 
         pb_front_left = findViewById(R.id.pb_front_left);
         pb_front_right = findViewById(R.id.pb_front_right);
@@ -157,6 +186,29 @@ public class DiscoAcitivity extends AppCompatActivity {
                 }
             }
         });
+
+        dispatch.put(TransferCaseRotEngCommand.class, new CommandHandler() {
+            @Override
+            public void handle(ObdCommand cmd) {
+                tv_tc_rot.setText(cmd.getFormattedResult());
+                TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
+                if (tcrec.getRes() > 160) {
+                    iv_central_diff_lock.setImageResource(R.drawable.locked);
+                } else {
+                    iv_central_diff_lock.setImageResource(R.drawable.unlocked);
+                }
+
+            }
+        });
+
+
+        dispatch.put(TransferCaseSolenoidPositionCommand.class, new CommandHandler() {
+            @Override
+            public void handle(ObdCommand cmd) {
+                tv_tc_sol_len.setText(cmd.getFormattedResult());
+            }
+        });
+
 
         dispatch.put(TransferCaseTempCommand.class, new CommandHandler() {
             @Override
@@ -209,7 +261,7 @@ public class DiscoAcitivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-//        startLiveData();
+        startLiveData();
     }
 
     @Override
