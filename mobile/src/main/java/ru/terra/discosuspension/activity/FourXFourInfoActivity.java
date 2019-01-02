@@ -33,8 +33,8 @@ import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdCommandJob;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
 
-public class DiscoAcitivity extends AppCompatActivity {
-    private static final String TAG = DiscoAcitivity.class.getName();
+public class FourXFourInfoActivity extends AppCompatActivity {
+    private static final String TAG = FourXFourInfoActivity.class.getName();
     private AbstractGatewayService service;
     private boolean isServiceBound;
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
@@ -59,16 +59,16 @@ public class DiscoAcitivity extends AppCompatActivity {
     private ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            Logger.d(DiscoAcitivity.this, TAG, className.toString() + " service is bound");
+            Logger.d(FourXFourInfoActivity.this, TAG, className.toString() + " service is bound");
             isServiceBound = true;
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
-            service.setContext(DiscoAcitivity.this);
-            Toast.makeText(DiscoAcitivity.this, "Подключение успешно", Toast.LENGTH_SHORT).show();
+            service.setContext(FourXFourInfoActivity.this);
+            Toast.makeText(FourXFourInfoActivity.this, "Подключение успешно", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            Logger.d(DiscoAcitivity.this, TAG, className.toString() + " service is unbound");
+            Logger.d(FourXFourInfoActivity.this, TAG, className.toString() + " service is unbound");
             isServiceBound = false;
         }
     };
@@ -299,7 +299,7 @@ public class DiscoAcitivity extends AppCompatActivity {
 
     private void doUnbindService() {
         if (isServiceBound) {
-            Logger.d(DiscoAcitivity.this, TAG, "Unbinding OBD service..");
+            Logger.d(FourXFourInfoActivity.this, TAG, "Unbinding OBD service..");
             unbindService(serviceConn);
             isServiceBound = false;
         }

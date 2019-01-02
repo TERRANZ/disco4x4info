@@ -13,7 +13,8 @@ import pt.lighthouselabs.obd.commands.ObdCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
-import ru.terra.discosuspension.activity.DiscoAcitivity;
+import ru.terra.discosuspension.NotificationInstance;
+import ru.terra.discosuspension.activity.FourXFourInfoActivity;
 import ru.terra.discosuspension.obd.commands.AmbientAirTemperatureObdCommand;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
@@ -135,11 +136,11 @@ public class BtObdConnectionHelper {
             Logger.e(context, TAG, "Unable to execute command", e);
             return false;
         }
-        if (runContext instanceof DiscoAcitivity)
-            ((DiscoAcitivity) runContext).runOnUiThread(new Runnable() {
+        if (runContext instanceof FourXFourInfoActivity)
+            ((FourXFourInfoActivity) runContext).runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ((DiscoAcitivity) runContext).stateUpdate(cmd);
+                    ((FourXFourInfoActivity) runContext).stateUpdate(cmd);
                 }
             });
         return true;
@@ -154,5 +155,6 @@ public class BtObdConnectionHelper {
     }
 
     private void sendStatus(String text) {
+        NotificationInstance.getInstance().createInfoNotification(context, text);
     }
 }

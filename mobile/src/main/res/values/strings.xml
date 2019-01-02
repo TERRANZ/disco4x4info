@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">DiscoSuspension</string>
+    <string name="app_name">4x4 Info</string>
     <string name="auto_connect">Auto Connect</string>
     <string name="title_activity_disco_acitivity">DiscoAcitivity</string>
+    <string name="error_crash_toast">Error caught</string>
 </resources>

@@ -1,5 +1,7 @@
 package ru.terra.discosuspension.obd.io.helper;
 
+import org.acra.ACRA;
+
 public final class HexUtil {
     public static String getLastByte(final String data) {
         return data.substring(data.lastIndexOf(" "), data.length()).trim();
@@ -11,11 +13,21 @@ public final class HexUtil {
         //example 18 DA F1 1A 04 62 19 6D 31 temp
         //example 18 DA F1 1A 07 62 D1 20 01 01 00 00 rear block
         //example 18 DA F1 2B 05 62 3B 03 00 EF suspension height
-        return hex2Decimal(data.split(" ")[8]);
+        try {
+            return hex2Decimal(data.split(" ")[8]);
+        } catch (Exception e) {
+            ACRA.getErrorReporter().handleException(e);
+        }
+        return 0;
     }
 
     public static int extractDigitB(final String data) {
-        return hex2Decimal(data.split(" ")[9]);
+        try {
+            return hex2Decimal(data.split(" ")[9]);
+        } catch (Exception e) {
+            ACRA.getErrorReporter().handleException(e);
+        }
+        return 0;
     }
 
     public static int hex2Decimal(String s) {
