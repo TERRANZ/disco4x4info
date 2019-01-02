@@ -197,7 +197,7 @@ public class DiscoAcitivity extends AppCompatActivity {
             public void handle(ObdCommand cmd) {
                 tv_tc_rot.setText(cmd.getFormattedResult());
                 TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
-                if (tcrec.getRes() > 160) {
+                if (tcrec.getRes() > 180) {
                     iv_central_diff_lock.setImageResource(R.drawable.locked);
                 } else {
                     iv_central_diff_lock.setImageResource(R.drawable.unlocked);
