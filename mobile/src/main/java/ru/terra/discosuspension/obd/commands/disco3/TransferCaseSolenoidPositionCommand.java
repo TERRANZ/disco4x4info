@@ -13,6 +13,10 @@ public class TransferCaseSolenoidPositionCommand extends ObdProtocolCommand {
         return String.valueOf((byte) HexUtil.extractDigitA(getResult()));
     }
 
+    public boolean isHi() {
+        return (byte) HexUtil.extractDigitA(getResult()) > 0;
+    }
+
     @Override
     public String getName() {
         return "Transfer Case Solenoid Position";

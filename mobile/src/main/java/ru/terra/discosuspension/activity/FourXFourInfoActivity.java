@@ -45,7 +45,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE);
     private SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(ControlModuleIDs.GEARBOX_CONTROL_MODULE);
 
-    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len;
+    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range;
     private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
@@ -170,6 +170,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         tv_curr_gear = findViewById(R.id.tv_curr_gear);
         tv_tc_rot = findViewById(R.id.tv_tc_rot);
         tv_tc_sol_len = findViewById(R.id.tv_tc_sol_pos);
+        tv_range = findViewById(R.id.tv_range);
 
         pb_front_left = findViewById(R.id.pb_front_left);
         pb_front_right = findViewById(R.id.pb_front_right);
@@ -207,7 +208,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         });
 
 
-        dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> tv_tc_sol_len.setText(cmd.getFormattedResult()));
+        dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> {
+            tv_tc_sol_len.setText(cmd.getFormattedResult());
+            tv_range.setText(((TransferCaseSolenoidPositionCommand) cmd).isHi() ? "Hi" : "Lo");
+        });
 
 
         dispatch.put(TransferCaseTempCommand.class, cmd -> tv_tb_temp.setText(cmd.getFormattedResult()));

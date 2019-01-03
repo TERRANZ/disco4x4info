@@ -28,7 +28,6 @@
         <activity
             android:name=".activity.FourXFourInfoActivity"
             android:label="@string/title_activity_disco_acitivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".activity.ConfigActivity"
