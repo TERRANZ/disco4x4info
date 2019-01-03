@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="obd_protocol">obd_protocol</string>
     <string-array name="protocolsNamesArray">
         <item>AUTO</item>
         <item>SAE_J1850_PWM</item>

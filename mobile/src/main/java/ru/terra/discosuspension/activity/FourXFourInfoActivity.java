@@ -4,9 +4,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -52,6 +54,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private final static long SUSP_REQ_DIFF = 10000;
     private final static long GB_REQ_DIFF = 10000;
 
+    private int OBD_SLEEP_UPDATE = 0;
+    private int OBD_SLEEP_SELECT_CM = 0;
+    private int TCCM_ENG_ROT_BLOCK = 0;
+
     private interface CommandHandler {
         void handle(ObdCommand cmd);
     }
@@ -93,55 +99,55 @@ public class FourXFourInfoActivity extends AppCompatActivity {
                         addGearBoxCommands();
                     }
             }
-            new Handler().postDelayed(mQueueCommands, 500);
+            new Handler().postDelayed(mQueueCommands, OBD_SLEEP_UPDATE);
         }
     };
 
     private void addRDCMCommands() {
         //RDCM
         service.queueJob(new ObdCommandJob(scmcRearDiff));
-        sleep50();
+        doSleep();
         service.queueJob(new ObdCommandJob(new RearDiffTempCommand()));
         service.queueJob(new ObdCommandJob(new RearDiffBlockCommand()));
-        sleep50();
+        doSleep();
     }
 
     private void addSuspensionCommands() {
         if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
             service.queueJob(new ObdCommandJob(scmcSuspension));
-            sleep50();
+            doSleep();
             service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT)));
             service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT)));
             service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT)));
             service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT)));
-            sleep50();
+            doSleep();
             lastSuspensionRequest = System.currentTimeMillis();
         }
     }
 
     private void addTCComamnds() {
         service.queueJob(new ObdCommandJob(scmcTC));
-        sleep50();
+        doSleep();
         service.queueJob(new ObdCommandJob(new TransferCaseTempCommand()));
         service.queueJob(new ObdCommandJob(new TransferCaseRotEngCommand()));
         service.queueJob(new ObdCommandJob(new TransferCaseSolenoidPositionCommand()));
-        sleep50();
+        doSleep();
     }
 
     private void addGearBoxCommands() {
         if (System.currentTimeMillis() - lastGBRequest > GB_REQ_DIFF) {
             service.queueJob(new ObdCommandJob(scmcGearBox));
-            sleep50();
+            doSleep();
             service.queueJob(new ObdCommandJob(new CurrentGearCommand()));
             service.queueJob(new ObdCommandJob(new GearBoxTempCommand()));
-            sleep50();
+            doSleep();
             lastGBRequest = System.currentTimeMillis();
         }
     }
 
-    private static void sleep50() {
+    private void doSleep() {
         try {
-            Thread.sleep(10);
+            Thread.sleep(OBD_SLEEP_SELECT_CM);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -151,6 +157,11 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_4x4_info);
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), 20);
+        OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), 20);
+        TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), 180);
 
         tv_gb_temp = findViewById(R.id.tv_gb_temp);
         tv_tb_temp = findViewById(R.id.tv_tb_temp);
@@ -174,95 +185,61 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
 
 
-        dispatch.put(RearDiffTempCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_rd_temp.setText(cmd.getFormattedResult());
+        dispatch.put(RearDiffTempCommand.class, cmd -> tv_rd_temp.setText(cmd.getFormattedResult()));
+
+        dispatch.put(RearDiffBlockCommand.class, cmd -> {
+            if (cmd.getFormattedResult().equalsIgnoreCase("on")) {
+                iv_rear_diff_lock.setImageResource(R.drawable.locked);
+            } else {
+                iv_rear_diff_lock.setImageResource(R.drawable.unlocked);
             }
         });
 
-        dispatch.put(RearDiffBlockCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                if (cmd.getFormattedResult().equalsIgnoreCase("on")) {
-                    iv_rear_diff_lock.setImageResource(R.drawable.locked);
-                } else {
-                    iv_rear_diff_lock.setImageResource(R.drawable.unlocked);
+        dispatch.put(TransferCaseRotEngCommand.class, cmd -> {
+            tv_tc_rot.setText(cmd.getFormattedResult());
+            TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
+            if (tcrec.getRes() > TCCM_ENG_ROT_BLOCK) {
+                iv_central_diff_lock.setImageResource(R.drawable.locked);
+            } else {
+                iv_central_diff_lock.setImageResource(R.drawable.unlocked);
+            }
+
+        });
+
+
+        dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> tv_tc_sol_len.setText(cmd.getFormattedResult()));
+
+
+        dispatch.put(TransferCaseTempCommand.class, cmd -> tv_tb_temp.setText(cmd.getFormattedResult()));
+
+        dispatch.put(CurrentGearCommand.class, cmd -> tv_curr_gear.setText(cmd.getFormattedResult()));
+
+        dispatch.put(GearBoxTempCommand.class, cmd -> tv_gb_temp.setText(cmd.getFormattedResult()));
+
+        dispatch.put(SuspensionHeightCommand.class, cmd -> {
+            SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
+            switch (shc.getWheel()) {
+                case SuspensionHeightCommand.FRONT_LEFT: {
+                    pb_front_left.setProgress((int) (shc.calc() + 10));
+                    tv_w_fl.setText(cmd.getFormattedResult());
                 }
-            }
-        });
-
-        dispatch.put(TransferCaseRotEngCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_tc_rot.setText(cmd.getFormattedResult());
-                TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
-                if (tcrec.getRes() > 180) {
-                    iv_central_diff_lock.setImageResource(R.drawable.locked);
-                } else {
-                    iv_central_diff_lock.setImageResource(R.drawable.unlocked);
+                break;
+                case SuspensionHeightCommand.FRONT_RIGHT: {
+                    pb_front_right.setProgress((int) (shc.calc() + 10));
+                    tv_w_fr.setText(cmd.getFormattedResult());
                 }
-
-            }
-        });
-
-
-        dispatch.put(TransferCaseSolenoidPositionCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_tc_sol_len.setText(cmd.getFormattedResult());
-            }
-        });
-
-
-        dispatch.put(TransferCaseTempCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_tb_temp.setText(cmd.getFormattedResult());
-            }
-        });
-
-        dispatch.put(CurrentGearCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_curr_gear.setText(cmd.getFormattedResult());
-            }
-        });
-
-        dispatch.put(GearBoxTempCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                tv_gb_temp.setText(cmd.getFormattedResult());
-            }
-        });
-
-        dispatch.put(SuspensionHeightCommand.class, new CommandHandler() {
-            @Override
-            public void handle(ObdCommand cmd) {
-                SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
-                switch (shc.getWheel()) {
-                    case SuspensionHeightCommand.FRONT_LEFT: {
-                        pb_front_left.setProgress((int) (shc.calc() + 10));
-                        tv_w_fl.setText(cmd.getFormattedResult());
-                    }
-                    break;
-                    case SuspensionHeightCommand.FRONT_RIGHT: {
-                        pb_front_right.setProgress((int) (shc.calc() + 10));
-                        tv_w_fr.setText(cmd.getFormattedResult());
-                    }
-                    break;
-                    case SuspensionHeightCommand.REAR_LEFT: {
-                        pb_rear_left.setProgress((int) (shc.calc() + 10));
-                        tv_w_rl.setText(cmd.getFormattedResult());
-                    }
-                    break;
-                    case SuspensionHeightCommand.REAR_RIGHT: {
-                        pb_rear_right.setProgress((int) (shc.calc() + 10));
-                        tv_w_rr.setText(cmd.getFormattedResult());
-                    }
-                    break;
-
+                break;
+                case SuspensionHeightCommand.REAR_LEFT: {
+                    pb_rear_left.setProgress((int) (shc.calc() + 10));
+                    tv_w_rl.setText(cmd.getFormattedResult());
                 }
+                break;
+                case SuspensionHeightCommand.REAR_RIGHT: {
+                    pb_rear_right.setProgress((int) (shc.calc() + 10));
+                    tv_w_rr.setText(cmd.getFormattedResult());
+                }
+                break;
+
             }
         });
     }

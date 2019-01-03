@@ -3,4 +3,15 @@
     <string name="auto_connect">Auto Connect</string>
     <string name="title_activity_disco_acitivity">DiscoAcitivity</string>
     <string name="error_crash_toast">Error caught</string>
+
+    <string name="obd_protocol">obd_protocol</string>
+    <string name="obd_sleep_update">obd_sleep_update</string>
+    <string name="obd_sleep_select_cm">obd_sleep_select_cm</string>
+
+    <string name="tccm_eng_rot_block">tccm_eng_rot_block</string>
+
+    <string name="obd_sleep_update_title">Скорость обновления</string>
+    <string name="obd_sleep_select_cm_title">Время задержки выбора блока</string>
+
+    <string name="tccm_eng_rot_block_title">Сдвиг поворота TCCM для блокировки</string>
 </resources>

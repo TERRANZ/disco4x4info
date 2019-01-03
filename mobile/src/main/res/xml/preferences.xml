@@ -6,19 +6,42 @@
             android:key="bluetooth_list_preference"
             android:summary="List of paired bluetooth devices."
             android:title="Bluetooth Devices" />
+    </PreferenceCategory>
+    <!--<PreferenceCategory android:title="OBD Protocol">-->
+    <!--<PreferenceScreen-->
+    <!--android:key="obd_protocols_screen"-->
+    <!--android:summary="Select the protocol you would like to use."-->
+    <!--android:title="OBD Protocol">-->
+    <!--<ListPreference-->
+    <!--android:defaultValue="AUTO"-->
+    <!--android:entries="@array/protocolsNamesArray"-->
+    <!--android:entryValues="@array/protocolsArray"-->
+    <!--android:key="@string/obd_protocol"-->
+    <!--android:title="Select protocol" />-->
+    <!--</PreferenceScreen>-->
+    <!--</PreferenceCategory>-->
+    <PreferenceCategory android:title="Тайминги">
 
+        <ru.terra.discosuspension.activity.components.IntEditTextPreference
+            android:defaultValue="10"
+            android:key="@string/obd_sleep_update"
+            android:maxLength="4"
+            android:numeric="integer"
+            android:title="@string/obd_sleep_update_title" />
+
+        <ru.terra.discosuspension.activity.components.IntEditTextPreference
+            android:defaultValue="20"
+            android:key="@string/obd_sleep_select_cm"
+            android:maxLength="4"
+            android:numeric="integer"
+            android:title="@string/obd_sleep_select_cm_title" />
+
+        <ru.terra.discosuspension.activity.components.IntEditTextPreference
+            android:defaultValue="180"
+            android:key="@string/tccm_eng_rot_block"
+            android:maxLength="4"
+            android:numeric="integer"
+            android:title="@string/tccm_eng_rot_block_title" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="OBD Protocol">
-        <PreferenceScreen
-            android:key="obd_protocols_screen"
-            android:summary="Select the protocol you would like to use."
-            android:title="OBD Protocol">
-            <ListPreference
-                android:defaultValue="AUTO"
-                android:entries="@array/protocolsNamesArray"
-                android:entryValues="@array/protocolsArray"
-                android:key="@string/obd_protocol"
-                android:title="Select protocol" />
-        </PreferenceScreen>
-    </PreferenceCategory>
+
 </PreferenceScreen>

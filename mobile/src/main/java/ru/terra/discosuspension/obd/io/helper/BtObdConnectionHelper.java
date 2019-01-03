@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 
+import org.acra.ACRA;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -134,15 +136,11 @@ public class BtObdConnectionHelper {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
         } catch (Exception e) {
             Logger.e(context, TAG, "Unable to execute command", e);
+            ACRA.getErrorReporter().handleException(e);
             return false;
         }
         if (runContext instanceof FourXFourInfoActivity)
-            ((FourXFourInfoActivity) runContext).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((FourXFourInfoActivity) runContext).stateUpdate(cmd);
-                }
-            });
+            ((FourXFourInfoActivity) runContext).runOnUiThread(() -> ((FourXFourInfoActivity) runContext).stateUpdate(cmd));
         return true;
     }
 
