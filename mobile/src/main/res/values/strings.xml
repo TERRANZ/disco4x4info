@@ -14,4 +14,11 @@
     <string name="obd_sleep_select_cm_title">Время задержки выбора блока</string>
 
     <string name="tccm_eng_rot_block_title">Сдвиг поворота TCCM для блокировки</string>
+    <string name="GB_TEMP">Темп. коробки</string>
+    <string name="zero">0</string>
+    <string name="TC_TEMP">Темп. раздатки</string>
+    <string name="rd_temp">Темп. зад. дифф.</string>
+    <string name="tc_rot">Угол пов. мот. разд.</string>
+    <string name="tc_sol">Положение соленоида</string>
+    <string name="gb_shift">Переключатель передач</string>
 </resources>

@@ -3,18 +3,20 @@ package ru.terra.discosuspension.obd.commands.disco3;
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 import ru.terra.discosuspension.obd.io.helper.HexUtil;
 
+import static ru.terra.discosuspension.obd.constants.CommandID.TC_SOL_POS;
+
 public class TransferCaseSolenoidPositionCommand extends ObdProtocolCommand {
     public TransferCaseSolenoidPositionCommand() {
-        super("22D123");
+        super(TC_SOL_POS.getCmd());
     }
 
     @Override
     public String getFormattedResult() {
-        return String.valueOf((byte) HexUtil.extractDigitA(getResult()));
+        return String.valueOf((byte) HexUtil.extractDigitA(getResult(), TC_SOL_POS));
     }
 
     public boolean isHi() {
-        return (byte) HexUtil.extractDigitA(getResult()) > 0;
+        return (byte) HexUtil.extractDigitA(getResult(), TC_SOL_POS) > 0;
     }
 
     @Override

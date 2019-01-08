@@ -21,8 +21,8 @@ import java.util.Map;
 import pt.lighthouselabs.obd.commands.ObdCommand;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.R;
-import ru.terra.discosuspension.obd.ControlModuleIDs;
 import ru.terra.discosuspension.obd.commands.disco3.CurrentGearCommand;
+import ru.terra.discosuspension.obd.commands.disco3.DriveShiftPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.GearBoxTempCommand;
 import ru.terra.discosuspension.obd.commands.disco3.RearDiffBlockCommand;
 import ru.terra.discosuspension.obd.commands.disco3.RearDiffTempCommand;
@@ -31,6 +31,7 @@ import ru.terra.discosuspension.obd.commands.disco3.SuspensionHeightCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseRotEngCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
+import ru.terra.discosuspension.obd.constants.ControlModuleIDs;
 import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdCommandJob;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
@@ -45,14 +46,14 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE);
     private SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(ControlModuleIDs.GEARBOX_CONTROL_MODULE);
 
-    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range;
+    private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range, tv_gb_shit_pos;
     private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
 
     private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
     private final static long SUSP_REQ_DIFF = 10000;
-    private final static long GB_REQ_DIFF = 10000;
+    private final static long GB_REQ_DIFF = 5000;
 
     private int OBD_SLEEP_UPDATE = 0;
     private int OBD_SLEEP_SELECT_CM = 0;
@@ -140,6 +141,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
             doSleep();
             service.queueJob(new ObdCommandJob(new CurrentGearCommand()));
             service.queueJob(new ObdCommandJob(new GearBoxTempCommand()));
+            service.queueJob(new ObdCommandJob(new DriveShiftPositionCommand()));
             doSleep();
             lastGBRequest = System.currentTimeMillis();
         }
@@ -171,6 +173,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         tv_tc_rot = findViewById(R.id.tv_tc_rot);
         tv_tc_sol_len = findViewById(R.id.tv_tc_sol_pos);
         tv_range = findViewById(R.id.tv_range);
+        tv_gb_shit_pos = findViewById(R.id.tv_gb_shit_pos);
 
         pb_front_left = findViewById(R.id.pb_front_left);
         pb_front_right = findViewById(R.id.pb_front_right);
@@ -245,6 +248,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
                 break;
 
             }
+        });
+
+        dispatch.put(DriveShiftPositionCommand.class, cmd -> {
+            tv_gb_shit_pos.setText(cmd.getFormattedResult());
         });
     }
 

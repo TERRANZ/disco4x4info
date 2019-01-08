@@ -2,9 +2,11 @@ package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
+import static ru.terra.discosuspension.obd.constants.CommandID.SCM;
+
 public class SelectControlModuleCommand extends ObdProtocolCommand {
     public SelectControlModuleCommand(final String blockId) {
-        super("ATSH" + blockId);
+        super(SCM.getCmd() + blockId);
     }
 
     @Override

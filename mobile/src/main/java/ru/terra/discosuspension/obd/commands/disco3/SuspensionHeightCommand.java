@@ -4,6 +4,7 @@ import android.util.Log;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
+import static ru.terra.discosuspension.obd.constants.CommandID.SUSP_HEIGHT;
 import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitA;
 import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitB;
 
@@ -15,7 +16,7 @@ public class SuspensionHeightCommand extends ObdProtocolCommand {
     private String wheel;
 
     public SuspensionHeightCommand(final String wheel) {
-        super("223B0" + wheel);
+        super(SUSP_HEIGHT.getCmd() + wheel);
         this.wheel = wheel;
     }
 
@@ -30,8 +31,8 @@ public class SuspensionHeightCommand extends ObdProtocolCommand {
     }
 
     public double calc() {
-        final int A = extractDigitA(getResult());
-        final int B = extractDigitB(getResult());
+        final int A = extractDigitA(getResult(), SUSP_HEIGHT);
+        final int B = extractDigitB(getResult(), SUSP_HEIGHT);
         return (double) (A * 256 + B) / 10 - 20;
     }
 

@@ -2,13 +2,14 @@ package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
+import static ru.terra.discosuspension.obd.constants.CommandID.RD_TEMP;
 import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitA;
 
 public class RearDiffTempCommand extends ObdProtocolCommand {
     private static final int TEMP_CONST = 40;
 
     public RearDiffTempCommand() {
-        super("22196D");
+        super(RD_TEMP.getCmd());
     }
 
     @Override
@@ -17,7 +18,7 @@ public class RearDiffTempCommand extends ObdProtocolCommand {
         //need to extract last digits: 31
         //convert hex to dec: 31 => 49
         //49-40 = 9 degrees
-        final Integer extractedValue = extractDigitA(getResult());
+        final Integer extractedValue = extractDigitA(getResult(), RD_TEMP);
         return String.valueOf(extractedValue - TEMP_CONST);
     }
 

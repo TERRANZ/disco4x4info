@@ -150,14 +150,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="Темп. коробки" />
+                android:text="@string/GB_TEMP" />
 
             <TextView
                 android:id="@+id/tv_gb_temp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="0" />
+                android:text="@string/zero" />
         </TableRow>
 
         <TableRow
@@ -169,14 +169,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="Темп. раздатки" />
+                android:text="@string/TC_TEMP" />
 
             <TextView
                 android:id="@+id/tv_tb_temp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="0" />
+                android:text="@string/zero" />
         </TableRow>
 
         <TableRow
@@ -188,14 +188,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="Темп. зад. дифф." />
+                android:text="@string/rd_temp" />
 
             <TextView
                 android:id="@+id/tv_rd_temp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="0" />
+                android:text="@string/zero" />
         </TableRow>
 
         <TableRow
@@ -207,14 +207,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="Угол пов. мот. разд." />
+                android:text="@string/tc_rot" />
 
             <TextView
                 android:id="@+id/tv_tc_rot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="0" />
+                android:text="@string/zero" />
         </TableRow>
 
 
@@ -227,14 +227,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="Положение соленоида" />
+                android:text="@string/tc_sol" />
 
             <TextView
                 android:id="@+id/tv_tc_sol_pos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="0" />
+                android:text="@string/zero" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="@string/gb_shift" />
+
+            <TextView
+                android:id="@+id/tv_gb_shit_pos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="@string/zero" />
         </TableRow>
 
 

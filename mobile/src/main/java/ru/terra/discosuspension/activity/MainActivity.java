@@ -1,12 +1,11 @@
-package ru.terra.discosuspension;
+package ru.terra.discosuspension.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import ru.terra.discosuspension.activity.ConfigActivity;
-import ru.terra.discosuspension.activity.FourXFourInfoActivity;
+import ru.terra.discosuspension.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,7 +17,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void start(View view) {
         startActivity(new Intent(this, FourXFourInfoActivity.class));
-//        throw new NumberFormatException();
     }
 
     public void config(View view) {

@@ -3,14 +3,16 @@ package ru.terra.discosuspension.obd.commands.disco3;
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 import ru.terra.discosuspension.obd.io.helper.HexUtil;
 
+import static ru.terra.discosuspension.obd.constants.CommandID.TC_TEMP;
+
 public class TransferCaseTempCommand extends ObdProtocolCommand {
     public TransferCaseTempCommand() {
-        super("22D11C");
+        super(TC_TEMP.getCmd());
     }
 
     @Override
     public String getFormattedResult() {
-        return String.valueOf(HexUtil.extractDigitA(getResult()) - 40);
+        return String.valueOf(HexUtil.extractDigitA(getResult(), TC_TEMP) - 40);
     }
 
     @Override
