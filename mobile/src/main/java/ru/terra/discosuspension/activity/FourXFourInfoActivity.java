@@ -39,7 +39,6 @@ import ru.terra.discosuspension.obd.io.ObdGatewayService;
 public class FourXFourInfoActivity extends AppCompatActivity {
     private static final String TAG = FourXFourInfoActivity.class.getName();
     private AbstractGatewayService service;
-    private boolean isServiceBound;
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
     private SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(ControlModuleIDs.REAR_DIFF_CONTROL_MODULE);
     private SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(ControlModuleIDs.SUSPENSION_CONTROL_MODULE);
@@ -66,39 +65,37 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            Logger.d(TAG, className.toString() + " service is bound");
-            isServiceBound = true;
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
             service.setContext(FourXFourInfoActivity.this);
-            Toast.makeText(FourXFourInfoActivity.this, "Подключение успешно", Toast.LENGTH_SHORT).show();
+            Logger.i(TAG, "Service connected, starting queue");
+
+            if (!service.isRunning())
+                if (!service.startService()) {
+                    Toast.makeText(getApplicationContext(), "Не запустился сервис", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+
+            new Handler().post(mQueueCommands);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            Logger.d(TAG, className.toString() + " service is unbound");
-            isServiceBound = false;
         }
     };
 
     private final Runnable mQueueCommands = new Runnable() {
         public void run() {
-            if (service != null) {
-                if (!service.isRunning())
-                    if (!service.startService()) {
-                        finish();
-                        return;
-                    }
-                if (service.getCurrentQueueSize() == 0)
-                    if (isServiceBound) {
-                        //Rear diff
-                        addRDCMCommands();
-                        //suspension
-                        addSuspensionCommands();
-                        //transfer case
-                        addTCComamnds();
-                        //gearbox
-                        addGearBoxCommands();
-                    }
+            Logger.i(TAG, "Current thread: " + Thread.currentThread().getName());
+            if (service != null && service.getCurrentQueueSize() == 0) {
+                //Rear diff
+                addRDCMCommands();
+                //suspension
+                addSuspensionCommands();
+                //transfer case
+                addTCComamnds();
+                //gearbox
+                addGearBoxCommands();
             }
             new Handler().postDelayed(mQueueCommands, OBD_SLEEP_UPDATE);
         }
@@ -188,7 +185,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         iv_rear_diff_lock = findViewById(R.id.iv_rear_diff_lock);
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
 
+        fillDispatcher();
+    }
 
+    private void fillDispatcher() {
         dispatch.put(RearDiffTempCommand.class, cmd -> tv_rd_temp.setText(cmd.getFormattedResult()));
 
         dispatch.put(RearDiffBlockCommand.class, cmd -> {
@@ -210,12 +210,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         });
 
-
         dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> {
             tv_tc_sol_len.setText(cmd.getFormattedResult());
             tv_range.setText(((TransferCaseSolenoidPositionCommand) cmd).isHi() ? "Hi" : "Lo");
         });
-
 
         dispatch.put(TransferCaseTempCommand.class, cmd -> tv_tb_temp.setText(cmd.getFormattedResult()));
 
@@ -258,38 +256,19 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        startLiveData();
+        final Intent serviceIntent = new Intent(getApplicationContext(), ObdGatewayService.class);
+        startService(serviceIntent);
+        bindService(serviceIntent, serviceConn, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        doUnbindService();
-    }
-
-    protected void onResume() {
-        super.onResume();
-        Logger.d(TAG, "Resuming..");
-    }
-
-    private void startLiveData() {
-        Logger.d(TAG, "Starting live data..");
-        doBindService();
-        new Handler().post(mQueueCommands);
-    }
-
-    private void doBindService() {
-        if (!isServiceBound) {
-            Logger.d(TAG, "Binding OBD service..");
-            bindService(new Intent(this, ObdGatewayService.class), serviceConn, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-    private void doUnbindService() {
-        if (isServiceBound) {
-            Logger.d(TAG, "Unbinding OBD service..");
-            unbindService(serviceConn);
-            isServiceBound = false;
+        unbindService(serviceConn);
+        service = null;
+        if (isFinishing()) {
+            stopService(new Intent(getApplicationContext(), ObdGatewayService.class));
+            Logger.i(TAG, "Stopping service");
         }
     }
 

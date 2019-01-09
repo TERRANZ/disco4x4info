@@ -8,7 +8,7 @@ import org.acra.ACRA;
 
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import ru.terra.discosuspension.Logger;
-import ru.terra.discosuspension.R;
+import ru.terra.discosuspension.NotificationInstance;
 import ru.terra.discosuspension.activity.ConfigActivity;
 import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
@@ -37,6 +37,7 @@ public class ObdGatewayService extends AbstractGatewayService {
             Logger.e(TAG, "There was an error while starting connection", e);
             ACRA.getErrorReporter().handleSilentException(e);
             stopService();
+            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Не выбран OBD2 адаптер", false);
             return false;
         }
 
@@ -45,15 +46,16 @@ public class ObdGatewayService extends AbstractGatewayService {
         } catch (BTOBDConnectionException e) {
             Logger.e(TAG, "There was an error while establishing connection", e);
             ACRA.getErrorReporter().handleSilentException(e);
+            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
             stopService();
             return false;
         }
 
-        connectionHelper.doResetAdapter(ctx);
+        connectionHelper.doResetAdapter(ctx.get());
 
         ObdProtocols prot = ObdProtocols.ISO_15765_4_CAN_B;
         try {
-            connectionHelper.doSelectProtocol(prot, ctx);
+            connectionHelper.doSelectProtocol(prot, ctx.get());
         } catch (BTOBDConnectionException e) {
             Logger.e(TAG, "There was an error while selecting protocol", e);
             ACRA.getErrorReporter().handleSilentException(e);
@@ -71,25 +73,19 @@ public class ObdGatewayService extends AbstractGatewayService {
      * Runs the queue until the service is stopped
      */
     protected void executeQueue() {
-        Logger.d(TAG, "Executing queue..");
         isQueueRunning = true;
         while (!jobsQueue.isEmpty()) {
             ObdCommandJob job = null;
             try {
                 job = jobsQueue.take();
                 // log job
-                Logger.d(TAG, "Taking job[" + job.getId() + "] from queue..");
                 if (job.getState().equals(ObdCommandJob.ObdCommandJobState.NEW)) {
-                    Logger.d(TAG, "Job state is NEW. Run it..");
                     job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
-                    connectionHelper.executeCommand(job.getCommand(), ctx);
-                } else
-                    // log not new job
-                    Logger.w(TAG, "Job state was not new, so it shouldn't be in queue. BUG ALERT!");
+                    connectionHelper.executeCommand(job.getCommand(), ctx.get());
+                }
             } catch (Exception e) {
                 if (job != null) {
                     job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
-                    Logger.e(TAG, "Failed to run command", e);
                     ACRA.getErrorReporter().handleSilentException(e);
                 }
             }

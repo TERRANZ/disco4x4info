@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 
-import org.acra.ACRA;
-
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
@@ -135,7 +133,6 @@ public class BtObdConnectionHelper {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
         } catch (Exception e) {
             Logger.e(TAG, "Unable to execute command", e);
-            ACRA.getErrorReporter().handleException(e);
             return false;
         }
         if (runContext instanceof FourXFourInfoActivity)

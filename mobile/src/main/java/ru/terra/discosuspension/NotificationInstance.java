@@ -22,7 +22,7 @@ public class NotificationInstance {
                 .setContentTitle("4x4 Info")
                 .setContentText(message)
                 .setGroup("4x4info")
-//                .setGroupSummary(finalMessage)
+                .setGroupSummary(finalMessage)
                 .build();
 
         NotificationManagerCompat notificationManager =
