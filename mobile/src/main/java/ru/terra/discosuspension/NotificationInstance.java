@@ -1,13 +1,13 @@
 package ru.terra.discosuspension;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 
 public class NotificationInstance {
     private static NotificationInstance instance = new NotificationInstance();
-    private NotificationManager manager;
+    private int counter;
 
     private NotificationInstance() {
     }
@@ -16,18 +16,18 @@ public class NotificationInstance {
         return instance;
     }
 
-    public void createInfoNotification(Context context, String message) {
-        manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationCompat.Builder nb = new NotificationCompat.Builder(context)
+    public void createInfoNotification(Context context, String message, boolean finalMessage) {
+        Notification notify = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setAutoCancel(true)
-                .setTicker(message)
+                .setContentTitle("4x4 Info")
                 .setContentText(message)
-                .setWhen(System.currentTimeMillis())
-                .setContentTitle("4x4 Info");
+                .setGroup("4x4info")
+//                .setGroupSummary(finalMessage)
+                .build();
 
-        Notification notification = nb.getNotification();
-        manager.notify(0, notification);
+        NotificationManagerCompat notificationManager =
+                NotificationManagerCompat.from(context);
+        notificationManager.notify(counter++, notify);
     }
 
 }

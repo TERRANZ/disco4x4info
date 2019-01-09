@@ -59,12 +59,12 @@ public class BtObdConnectionHelper {
         BluetoothDevice dev = btAdapter.getRemoteDevice(remoteDevice);
         btAdapter.cancelDiscovery();
         Logger.d(TAG, "Starting OBD connection..");
-        sendStatus("Старт");
+        sendStatus("Подключение", false);
         try {
             // Instantiate a BluetoothSocket for the remote device and connect it.
             sock = dev.createInsecureRfcommSocketToServiceRecord(MY_UUID);
             sock.connect();
-            sendStatus("Подключено");
+            sendStatus("Подключено", false);
             connectionStatus = ConnectionStatus.CONNECTED;
         } catch (Exception e1) {
             Logger.e(TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
@@ -75,13 +75,13 @@ public class BtObdConnectionHelper {
                 BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
                 sockFallback.connect();
                 sock = sockFallback;
-                sendStatus("Подключено");
+                sendStatus("Подключено", false);
                 connectionStatus = ConnectionStatus.CONNECTED;
             } catch (Exception e2) {
                 Logger.e(TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
-                sendStatus("Ошибка: " + e2.getMessage());
+                sendStatus("Ошибка: Невозможно подключиться к адаптеру", false);
                 disconnect();
-                throw new BTOBDConnectionException("Ошибка: " + e2.getMessage());
+                throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
             }
         }
     }
@@ -92,7 +92,7 @@ public class BtObdConnectionHelper {
             try {
                 sock.close();
                 connectionStatus = ConnectionStatus.DISCONNECTED;
-                sendStatus("Отключено");
+                sendStatus("Отключено", true);
             } catch (IOException e) {
                 Logger.e(TAG, e.getMessage(), e);
             }
@@ -103,7 +103,7 @@ public class BtObdConnectionHelper {
     public void doResetAdapter(Context runContext) throws ObdResponseException {
         Logger.d(TAG, "Queing jobs for connection configuration..");
         if (executeCommand(new ObdResetFixCommand(), runContext)) {
-            sendStatus("Сброс адаптера");
+            sendStatus("Сброс адаптера", false);
             if (executeCommand(new DisplayHeaderCommand(), runContext))
                 connectionStatus = ConnectionStatus.RESETTED;
         }
@@ -112,10 +112,9 @@ public class BtObdConnectionHelper {
 
     public void doSelectProtocol(ObdProtocols prot, Context runContext) throws BTOBDConnectionException {
         // For now set protocol to AUTO
-
         Logger.d(TAG, "Selecting protocol: " + prot.name());
         executeCommand(new SelectProtocolObdCommand(prot), runContext);
-        sendStatus("Выставление протокола");
+        sendStatus("Выставление протокола", false);
         connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
         // Job for returning dummy data
         try {
@@ -127,7 +126,7 @@ public class BtObdConnectionHelper {
             Logger.w(TAG, "Unable to select protocol");
             throw new BTOBDConnectionException("Unable to select protocol");
         }
-        sendStatus("В работе");
+        sendStatus("В работе", true);
         connectionStatus = ConnectionStatus.INWORK;
     }
 
@@ -152,7 +151,7 @@ public class BtObdConnectionHelper {
         return connectionStatus;
     }
 
-    private void sendStatus(String text) {
-        NotificationInstance.getInstance().createInfoNotification(context.get(), text);
+    private void sendStatus(String text, boolean finalMessage) {
+        NotificationInstance.getInstance().createInfoNotification(context.get(), text, finalMessage);
     }
 }
