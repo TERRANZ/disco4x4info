@@ -1,4 +1,4 @@
-package ru.terra.discosuspension.obd.io.helper;
+package ru.terra.discosuspension.obd.constants;
 
 /**
  * Date: 12.02.15

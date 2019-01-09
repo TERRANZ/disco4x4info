@@ -22,6 +22,7 @@ import ru.terra.discosuspension.obd.commands.AmbientAirTemperatureObdCommand;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
+import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
 
 /**

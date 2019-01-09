@@ -51,7 +51,7 @@ public class ObdGatewayService extends AbstractGatewayService {
 
         connectionHelper.doResetAdapter(ctx);
 
-        ObdProtocols prot = ObdProtocols.valueOf(prefs.getString(getString(R.string.obd_protocol), String.valueOf(ObdProtocols.ISO_15765_4_CAN_B.getValue())));
+        ObdProtocols prot = ObdProtocols.ISO_15765_4_CAN_B;
         try {
             connectionHelper.doSelectProtocol(prot, ctx);
         } catch (BTOBDConnectionException e) {
