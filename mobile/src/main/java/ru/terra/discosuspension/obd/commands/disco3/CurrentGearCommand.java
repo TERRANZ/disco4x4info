@@ -1,7 +1,7 @@
 package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
-import ru.terra.discosuspension.obd.io.helper.HexUtil;
+import ru.terra.discosuspension.obd.HexUtil;
 
 import static ru.terra.discosuspension.obd.constants.CommandID.CURR_GEAR;
 

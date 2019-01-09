@@ -46,15 +46,15 @@ public abstract class AbstractGatewayService extends Service {
      */
     public void queueJob(ObdCommandJob job) {
         queueCounter++;
-        Logger.d(this, TAG, "Adding job[" + queueCounter + "] to queue..");
+        Logger.d(TAG, "Adding job[" + queueCounter + "] to queue..");
 
         job.setId(queueCounter);
         try {
             jobsQueue.put(job);
-            Logger.d(this, TAG, "Job queued successfully.");
+            Logger.d(TAG, "Job queued successfully.");
         } catch (InterruptedException e) {
             job.setState(ObdCommandJob.ObdCommandJobState.QUEUE_ERROR);
-            Logger.e(this, TAG, "Failed to queue job.", e);
+            Logger.e(TAG, "Failed to queue job.", e);
         }
 
         if (!isQueueRunning) {

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
 
@@ -45,17 +44,15 @@ public class ConfigActivity extends PreferenceActivity implements
         final Activity thisActivity = this;
         listBtDevices.setEntries(new CharSequence[1]);
         listBtDevices.setEntryValues(new CharSequence[1]);
-        listBtDevices.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            public boolean onPreferenceClick(Preference preference) {
-                // see what I mean in the previous comment?
-                if (mBtAdapter == null || !mBtAdapter.isEnabled()) {
-                    Toast.makeText(thisActivity,
-                            "This device does not support Bluetooth or it is disabled.",
-                            Toast.LENGTH_LONG);
-                    return false;
-                }
-                return true;
+        listBtDevices.setOnPreferenceClickListener(preference -> {
+            // see what I mean in the previous comment?
+            if (!mBtAdapter.isEnabled()) {
+                Toast.makeText(thisActivity,
+                        "This device does not support Bluetooth or it is disabled.",
+                        Toast.LENGTH_LONG).show();
+                return false;
             }
+            return true;
         });
 
         Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();

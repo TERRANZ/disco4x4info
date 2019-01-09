@@ -66,7 +66,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            Logger.d(FourXFourInfoActivity.this, TAG, className.toString() + " service is bound");
+            Logger.d(TAG, className.toString() + " service is bound");
             isServiceBound = true;
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
             service.setContext(FourXFourInfoActivity.this);
@@ -75,7 +75,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            Logger.d(FourXFourInfoActivity.this, TAG, className.toString() + " service is unbound");
+            Logger.d(TAG, className.toString() + " service is unbound");
             isServiceBound = false;
         }
     };
@@ -251,7 +251,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         });
 
         dispatch.put(DriveShiftPositionCommand.class, cmd -> {
-            tv_gb_shit_pos.setText(cmd.getFormattedResult());
+            tv_gear.setText(cmd.getFormattedResult());
         });
     }
 
@@ -269,25 +269,25 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
     protected void onResume() {
         super.onResume();
-        Logger.d(this, TAG, "Resuming..");
+        Logger.d(TAG, "Resuming..");
     }
 
     private void startLiveData() {
-        Logger.d(this, TAG, "Starting live data..");
+        Logger.d(TAG, "Starting live data..");
         doBindService();
         new Handler().post(mQueueCommands);
     }
 
     private void doBindService() {
         if (!isServiceBound) {
-            Logger.d(this, TAG, "Binding OBD service..");
+            Logger.d(TAG, "Binding OBD service..");
             bindService(new Intent(this, ObdGatewayService.class), serviceConn, Context.BIND_AUTO_CREATE);
         }
     }
 
     private void doUnbindService() {
         if (isServiceBound) {
-            Logger.d(FourXFourInfoActivity.this, TAG, "Unbinding OBD service..");
+            Logger.d(TAG, "Unbinding OBD service..");
             unbindService(serviceConn);
             isServiceBound = false;
         }
@@ -295,7 +295,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
     public void stateUpdate(ObdCommand cmd) {
         CommandHandler h = dispatch.get(cmd.getClass());
-        Logger.i(this, TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
+        Logger.i(TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
         if (h != null) {
             h.handle(cmd);
         }

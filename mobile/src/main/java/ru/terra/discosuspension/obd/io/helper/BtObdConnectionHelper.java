@@ -8,6 +8,7 @@ import android.content.Context;
 import org.acra.ACRA;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
@@ -31,10 +32,8 @@ public class BtObdConnectionHelper {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final String TAG = BtObdConnectionHelper.class.getName();
     private static BtObdConnectionHelper instance = new BtObdConnectionHelper();
-    private Context context;
-    private BluetoothDevice dev = null;
+    private WeakReference<Context> context;
     private BluetoothSocket sock = null;
-    private BluetoothSocket sockFallback = null;
     private String remoteDevice;
     private ConnectionStatus connectionStatus = ConnectionStatus.NC;
 
@@ -42,13 +41,13 @@ public class BtObdConnectionHelper {
     }
 
     public static BtObdConnectionHelper getInstance(final Context context) {
-        instance.context = context;
+        instance.context = new WeakReference<>(context);
         return instance;
     }
 
     public void start(String remoteDevice) throws BTOBDConnectionException {
         this.remoteDevice = remoteDevice;
-        Logger.d(context, TAG, "Starting service..");
+        Logger.d(TAG, "Starting service..");
         if (remoteDevice == null || remoteDevice.isEmpty())
             throw new BTOBDConnectionException("No Bluetooth device has been selected.");
         connectionStatus = ConnectionStatus.DEV_SELECTED;
@@ -56,9 +55,9 @@ public class BtObdConnectionHelper {
 
     public void connect() throws BTOBDConnectionException {
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        dev = btAdapter.getRemoteDevice(remoteDevice);
+        BluetoothDevice dev = btAdapter.getRemoteDevice(remoteDevice);
         btAdapter.cancelDiscovery();
-        Logger.d(context, TAG, "Starting OBD connection..");
+        Logger.d(TAG, "Starting OBD connection..");
         sendStatus("Старт");
         try {
             // Instantiate a BluetoothSocket for the remote device and connect it.
@@ -67,18 +66,18 @@ public class BtObdConnectionHelper {
             sendStatus("Подключено");
             connectionStatus = ConnectionStatus.CONNECTED;
         } catch (Exception e1) {
-            Logger.e(context, TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
+            Logger.e(TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
             Class<?> clazz = sock.getRemoteDevice().getClass();
             Class<?>[] paramTypes = new Class<?>[]{Integer.TYPE};
             try {
                 Method m = clazz.getMethod("createRfcommSocket", paramTypes);
-                sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
+                BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
                 sockFallback.connect();
                 sock = sockFallback;
                 sendStatus("Подключено");
                 connectionStatus = ConnectionStatus.CONNECTED;
             } catch (Exception e2) {
-                Logger.e(context, TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
+                Logger.e(TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
                 sendStatus("Ошибка: " + e2.getMessage());
                 disconnect();
                 throw new BTOBDConnectionException("Ошибка: " + e2.getMessage());
@@ -94,14 +93,14 @@ public class BtObdConnectionHelper {
                 connectionStatus = ConnectionStatus.DISCONNECTED;
                 sendStatus("Отключено");
             } catch (IOException e) {
-                Logger.e(context, TAG, e.getMessage(), e);
+                Logger.e(TAG, e.getMessage(), e);
             }
         else
             connectionStatus = ConnectionStatus.NC;
     }
 
     public void doResetAdapter(Context runContext) throws ObdResponseException {
-        Logger.d(context, TAG, "Queing jobs for connection configuration..");
+        Logger.d(TAG, "Queing jobs for connection configuration..");
         if (executeCommand(new ObdResetFixCommand(), runContext)) {
             sendStatus("Сброс адаптера");
             if (executeCommand(new DisplayHeaderCommand(), runContext))
@@ -113,7 +112,7 @@ public class BtObdConnectionHelper {
     public void doSelectProtocol(ObdProtocols prot, Context runContext) throws BTOBDConnectionException {
         // For now set protocol to AUTO
 
-        Logger.d(context, TAG, "Selecting protocol: " + prot.name());
+        Logger.d(TAG, "Selecting protocol: " + prot.name());
         executeCommand(new SelectProtocolObdCommand(prot), runContext);
         sendStatus("Выставление протокола");
         connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
@@ -124,7 +123,7 @@ public class BtObdConnectionHelper {
             e.printStackTrace();
         }
         if (!executeCommand(new AmbientAirTemperatureObdCommand(), runContext)) {
-            Logger.w(context, TAG, "Unable to select protocol");
+            Logger.w(TAG, "Unable to select protocol");
             throw new BTOBDConnectionException("Unable to select protocol");
         }
         sendStatus("В работе");
@@ -135,7 +134,7 @@ public class BtObdConnectionHelper {
         try {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
         } catch (Exception e) {
-            Logger.e(context, TAG, "Unable to execute command", e);
+            Logger.e(TAG, "Unable to execute command", e);
             ACRA.getErrorReporter().handleException(e);
             return false;
         }
@@ -153,6 +152,6 @@ public class BtObdConnectionHelper {
     }
 
     private void sendStatus(String text) {
-        NotificationInstance.getInstance().createInfoNotification(context, text);
+        NotificationInstance.getInstance().createInfoNotification(context.get(), text);
     }
 }

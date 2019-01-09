@@ -5,8 +5,8 @@ import android.util.Log;
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
 import static ru.terra.discosuspension.obd.constants.CommandID.SUSP_HEIGHT;
-import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitA;
-import static ru.terra.discosuspension.obd.io.helper.HexUtil.extractDigitB;
+import static ru.terra.discosuspension.obd.HexUtil.extractDigitA;
+import static ru.terra.discosuspension.obd.HexUtil.extractDigitB;
 
 public class SuspensionHeightCommand extends ObdProtocolCommand {
     public static final String FRONT_LEFT = "3";

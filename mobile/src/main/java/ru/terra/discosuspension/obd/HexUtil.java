@@ -1,4 +1,4 @@
-package ru.terra.discosuspension.obd.io.helper;
+package ru.terra.discosuspension.obd;
 
 import org.acra.ACRA;
 
@@ -16,6 +16,12 @@ public final class HexUtil {
         //example 18 DA F1 1A 04 62 19 6D 31 temp
         //example 18 DA F1 1A 07 62 D1 20 01 01 00 00 rear block
         //example 18 DA F1 2B 05 62 3B 03 00 EF suspension height
+
+        //example 18 DA F1 18 04 62 1F D1 08 - P
+        //example 18 DA F1 18 04 62 1F D1 07 - R
+        //example 18 DA F1 18 04 62 1F D1 00 - N
+        //example 18 DA F1 18 04 62 1F D1 09 - D
+        //example 18 DA F1 18 04 62 1F D1 0A - M
         try {
             return hex2Decimal(data.split(DELIMITER)[8]);
         } catch (Exception e) {

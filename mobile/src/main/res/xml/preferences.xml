@@ -7,19 +7,6 @@
             android:summary="List of paired bluetooth devices."
             android:title="Bluetooth Devices" />
     </PreferenceCategory>
-    <!--<PreferenceCategory android:title="OBD Protocol">-->
-    <!--<PreferenceScreen-->
-    <!--android:key="obd_protocols_screen"-->
-    <!--android:summary="Select the protocol you would like to use."-->
-    <!--android:title="OBD Protocol">-->
-    <!--<ListPreference-->
-    <!--android:defaultValue="AUTO"-->
-    <!--android:entries="@array/protocolsNamesArray"-->
-    <!--android:entryValues="@array/protocolsArray"-->
-    <!--android:key="@string/obd_protocol"-->
-    <!--android:title="Select protocol" />-->
-    <!--</PreferenceScreen>-->
-    <!--</PreferenceCategory>-->
     <PreferenceCategory android:title="Тайминги">
 
         <ru.terra.discosuspension.activity.components.IntEditTextPreference
