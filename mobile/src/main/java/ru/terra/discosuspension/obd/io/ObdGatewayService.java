@@ -35,7 +35,6 @@ public class ObdGatewayService extends AbstractGatewayService {
             connectionHelper.start(prefs.getString(ConfigActivity.BLUETOOTH_LIST_KEY, null));
         } catch (BTOBDConnectionException e) {
             Logger.e(TAG, "There was an error while starting connection", e);
-            ACRA.getErrorReporter().handleSilentException(e);
             stopService();
             NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Не выбран OBD2 адаптер", false);
             return false;
@@ -45,7 +44,6 @@ public class ObdGatewayService extends AbstractGatewayService {
             connectionHelper.connect();
         } catch (BTOBDConnectionException e) {
             Logger.e(TAG, "There was an error while establishing connection", e);
-            ACRA.getErrorReporter().handleSilentException(e);
             NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
             stopService();
             return false;
