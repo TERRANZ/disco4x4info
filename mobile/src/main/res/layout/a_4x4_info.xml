@@ -99,6 +99,7 @@
         android:layout_marginStart="164dp"
         android:layout_marginTop="124dp"
         android:text="D"
+        android:textColor="@android:color/black"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -111,6 +112,7 @@
         android:layout_marginStart="148dp"
         android:layout_marginTop="163dp"
         android:text="HI"
+        android:textColor="@android:color/black"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -122,6 +124,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="124dp"
         android:text="1"
+        android:textColor="@android:color/black"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/tv_gear"
@@ -277,6 +280,8 @@
         android:layout_marginStart="36dp"
         android:layout_marginTop="24dp"
         android:text="0"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pb_front_left" />
 
@@ -287,6 +292,8 @@
         android:layout_marginStart="336dp"
         android:layout_marginTop="24dp"
         android:text="0"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pb_front_right" />
 
@@ -297,6 +304,8 @@
         android:layout_marginStart="36dp"
         android:layout_marginBottom="20dp"
         android:text="0"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/pb_rear_left"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -307,6 +316,8 @@
         android:layout_marginStart="336dp"
         android:layout_marginBottom="20dp"
         android:text="0"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/pb_rear_right"
         app:layout_constraintStart_toStartOf="@+id/imageView2" />
 
