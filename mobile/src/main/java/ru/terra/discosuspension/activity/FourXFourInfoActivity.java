@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.nitri.gauge.Gauge;
 import pt.lighthouselabs.obd.commands.ObdCommand;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.R;
@@ -27,32 +28,39 @@ import ru.terra.discosuspension.obd.commands.disco3.GearBoxTempCommand;
 import ru.terra.discosuspension.obd.commands.disco3.RearDiffBlockCommand;
 import ru.terra.discosuspension.obd.commands.disco3.RearDiffTempCommand;
 import ru.terra.discosuspension.obd.commands.disco3.SelectControlModuleCommand;
+import ru.terra.discosuspension.obd.commands.disco3.SteeringWheelPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.SuspensionHeightCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseRotEngCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
-import ru.terra.discosuspension.obd.constants.ControlModuleIDs;
 import ru.terra.discosuspension.obd.io.AbstractGatewayService;
-import ru.terra.discosuspension.obd.io.ObdCommandJob;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
+
+import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.GEARBOX_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.REAR_DIFF_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.STEERING_WHEEL_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.SUSPENSION_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE;
 
 public class FourXFourInfoActivity extends AppCompatActivity {
     private static final String TAG = FourXFourInfoActivity.class.getName();
     private AbstractGatewayService service;
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
-    private SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(ControlModuleIDs.REAR_DIFF_CONTROL_MODULE);
-    private SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(ControlModuleIDs.SUSPENSION_CONTROL_MODULE);
-    private SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE);
-    private SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(ControlModuleIDs.GEARBOX_CONTROL_MODULE);
+    private final SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(REAR_DIFF_CONTROL_MODULE);
+    private final SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(SUSPENSION_CONTROL_MODULE);
+    private final SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(TRANSFER_CASE_CONTROL_MODULE);
+    private final SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(GEARBOX_CONTROL_MODULE);
+    private final SelectControlModuleCommand scmcSteeringWheel = new SelectControlModuleCommand(STEERING_WHEEL_CONTROL_MODULE);
 
     private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range, tv_gb_shit_pos;
     private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
+    private Gauge gauge_steering_wheel_pos;
 
     private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
-    private final static long SUSP_REQ_DIFF = 10000;
-    private final static long GB_REQ_DIFF = 5000;
+    private final static long SUSP_REQ_DIFF = 1000;
+    private final static long GB_REQ_DIFF = 1000;
 
     private int OBD_SLEEP_UPDATE = 0;
     private int OBD_SLEEP_SELECT_CM = 0;
@@ -86,7 +94,6 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
     private final Runnable mQueueCommands = new Runnable() {
         public void run() {
-            Logger.i(TAG, "Current thread: " + Thread.currentThread().getName());
             if (service != null && service.getCurrentQueueSize() == 0) {
                 //Rear diff
                 addRDCMCommands();
@@ -96,6 +103,8 @@ public class FourXFourInfoActivity extends AppCompatActivity {
                 addTCComamnds();
                 //gearbox
                 addGearBoxCommands();
+                //steering wheel
+                addSteeringWheelCommands();
             }
             new Handler().postDelayed(mQueueCommands, OBD_SLEEP_UPDATE);
         }
@@ -103,45 +112,51 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
     private void addRDCMCommands() {
         //RDCM
-        service.queueJob(new ObdCommandJob(scmcRearDiff));
+        service.queueCmd(scmcRearDiff);
         doSleep();
-        service.queueJob(new ObdCommandJob(new RearDiffTempCommand()));
-        service.queueJob(new ObdCommandJob(new RearDiffBlockCommand()));
+        service.queueCmd(new RearDiffTempCommand());
+        service.queueCmd(new RearDiffBlockCommand());
         doSleep();
     }
 
     private void addSuspensionCommands() {
         if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
-            service.queueJob(new ObdCommandJob(scmcSuspension));
+            service.queueCmd(scmcSuspension);
             doSleep();
-            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT)));
-            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT)));
-            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT)));
-            service.queueJob(new ObdCommandJob(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT)));
+            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT));
+            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT));
+            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT));
+            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT));
             doSleep();
             lastSuspensionRequest = System.currentTimeMillis();
         }
     }
 
     private void addTCComamnds() {
-        service.queueJob(new ObdCommandJob(scmcTC));
+        service.queueCmd(scmcTC);
         doSleep();
-        service.queueJob(new ObdCommandJob(new TransferCaseTempCommand()));
-        service.queueJob(new ObdCommandJob(new TransferCaseRotEngCommand()));
-        service.queueJob(new ObdCommandJob(new TransferCaseSolenoidPositionCommand()));
+        service.queueCmd(new TransferCaseTempCommand());
+        service.queueCmd(new TransferCaseRotEngCommand());
+        service.queueCmd(new TransferCaseSolenoidPositionCommand());
         doSleep();
     }
 
     private void addGearBoxCommands() {
         if (System.currentTimeMillis() - lastGBRequest > GB_REQ_DIFF) {
-            service.queueJob(new ObdCommandJob(scmcGearBox));
+            service.queueCmd(scmcGearBox);
             doSleep();
-            service.queueJob(new ObdCommandJob(new CurrentGearCommand()));
-            service.queueJob(new ObdCommandJob(new GearBoxTempCommand()));
-            service.queueJob(new ObdCommandJob(new DriveShiftPositionCommand()));
+            service.queueCmd(new CurrentGearCommand());
+            service.queueCmd(new GearBoxTempCommand());
+            service.queueCmd(new DriveShiftPositionCommand());
             doSleep();
             lastGBRequest = System.currentTimeMillis();
         }
+    }
+
+    private void addSteeringWheelCommands() {
+        service.queueCmd(scmcSteeringWheel);
+        doSleep();
+        service.queueCmd(new SteeringWheelPositionCommand());
     }
 
     private void doSleep() {
@@ -157,7 +172,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_4x4_info);
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), 20);
         OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), 20);
         TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), 180);
@@ -185,6 +200,8 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         iv_rear_diff_lock = findViewById(R.id.iv_rear_diff_lock);
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
 
+        gauge_steering_wheel_pos = findViewById(R.id.gauge_steering_wheel_pos);
+
         fillDispatcher();
     }
 
@@ -201,7 +218,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         dispatch.put(TransferCaseRotEngCommand.class, cmd -> {
             tv_tc_rot.setText(cmd.getFormattedResult());
-            TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
+            final TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
             if (tcrec.getRes() > TCCM_ENG_ROT_BLOCK) {
                 iv_central_diff_lock.setImageResource(R.drawable.locked);
             } else {
@@ -222,7 +239,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         dispatch.put(GearBoxTempCommand.class, cmd -> tv_gb_temp.setText(cmd.getFormattedResult()));
 
         dispatch.put(SuspensionHeightCommand.class, cmd -> {
-            SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
+            final SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
             switch (shc.getWheel()) {
                 case SuspensionHeightCommand.FRONT_LEFT: {
                     pb_front_left.setProgress((int) (shc.calc() + 10));
@@ -250,6 +267,10 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         dispatch.put(DriveShiftPositionCommand.class, cmd -> {
             tv_gear.setText(cmd.getFormattedResult());
+        });
+
+        dispatch.put(SteeringWheelPositionCommand.class, cmd -> {
+            gauge_steering_wheel_pos.setValue(((SteeringWheelPositionCommand) cmd).calc());
         });
     }
 

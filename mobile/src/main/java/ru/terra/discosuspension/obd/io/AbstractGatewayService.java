@@ -10,6 +10,8 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
+
 
 public abstract class AbstractGatewayService extends Service {
     private static final String TAG = AbstractGatewayService.class.getName();
@@ -37,8 +39,9 @@ public abstract class AbstractGatewayService extends Service {
         }
     }
 
-    public void queueJob(ObdCommandJob job) {
+    public void queueCmd(final ObdProtocolCommand cmd) {
         queueCounter++;
+        final ObdCommandJob job = new ObdCommandJob(cmd);
         job.setId(queueCounter);
         try {
             jobsQueue.put(job);

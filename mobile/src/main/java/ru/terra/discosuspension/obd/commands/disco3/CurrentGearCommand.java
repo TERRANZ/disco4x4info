@@ -1,8 +1,8 @@
 package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
-import ru.terra.discosuspension.obd.HexUtil;
 
+import static ru.terra.discosuspension.obd.HexUtil.extractDigitA;
 import static ru.terra.discosuspension.obd.constants.CommandID.CURR_GEAR;
 
 
@@ -13,7 +13,7 @@ public class CurrentGearCommand extends ObdProtocolCommand {
 
     @Override
     public String getFormattedResult() {
-        return String.valueOf(HexUtil.extractDigitA(getResult(), CURR_GEAR));
+        return String.valueOf(extractDigitA(getResult(), CURR_GEAR));
     }
 
     @Override

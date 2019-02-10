@@ -270,6 +270,18 @@
                 android:layout_margin="5dp" />
 
         </TableRow>
+        <de.nitri.gauge.Gauge
+            android:id="@+id/gauge_steering_wheel_pos"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:layout_weight="0.75"
+            app:maxValue="650"
+            app:minValue="-650"
+            app:totalNicks="120"
+            app:valuePerNick="10"
+            app:upperText="Руль"/>
     </TableLayout>
 
     <TextView

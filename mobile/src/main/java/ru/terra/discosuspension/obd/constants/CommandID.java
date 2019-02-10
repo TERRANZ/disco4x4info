@@ -10,7 +10,8 @@ public enum CommandID {
     TC_ROT_ENG("22D124"),
     TC_SOL_POS("22D123"),
     TC_TEMP("22D11C"),
-    DRIVE_SHIFT_POS("221FD1");
+    DRIVE_SHIFT_POS("221FD1"),
+    STEERING_WHEEL_POS("223302");
     private String cmd;
 
     CommandID(final String cmd) {
