@@ -1,9 +1,5 @@
 package ru.terra.discosuspension.obd;
 
-import org.acra.ACRA;
-
-import java.text.ParseException;
-
 import ru.terra.discosuspension.obd.constants.CommandID;
 
 public final class HexUtil {
@@ -25,7 +21,7 @@ public final class HexUtil {
         try {
             return hex2Decimal(data.split(DELIMITER)[8]);
         } catch (Exception e) {
-            ACRA.getErrorReporter().handleException(new ParseException("Received: " + data + " but expected " + cmd.name(), 8));
+//            ACRA.getErrorReporter().handleException(new ParseException("Received: " + data + " but expected " + cmd.name(), 8));
         }
         return 0;
     }
@@ -34,7 +30,7 @@ public final class HexUtil {
         try {
             return hex2Decimal(data.split(" ")[9]);
         } catch (Exception e) {
-            ACRA.getErrorReporter().handleException(new ParseException("Received: " + data + " but expected " + cmd.name(), 9));
+//            ACRA.getErrorReporter().handleException(new ParseException("Received: " + data + " but expected " + cmd.name(), 9));
         }
         return 0;
     }

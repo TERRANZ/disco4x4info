@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,6 +58,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
     private Gauge gauge_steering_wheel_pos;
+    private CheckBox cb_wheel, cb_susp;
 
     private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
     private final static long SUSP_REQ_DIFF = 1000;
@@ -120,15 +122,17 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     }
 
     private void addSuspensionCommands() {
-        if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
-            service.queueCmd(scmcSuspension);
-            doSleep();
-            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT));
-            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT));
-            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT));
-            service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT));
-            doSleep();
-            lastSuspensionRequest = System.currentTimeMillis();
+        if (cb_susp.isChecked()) {
+            if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
+                service.queueCmd(scmcSuspension);
+                doSleep();
+                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT));
+                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT));
+                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT));
+                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT));
+                doSleep();
+                lastSuspensionRequest = System.currentTimeMillis();
+            }
         }
     }
 
@@ -154,9 +158,11 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     }
 
     private void addSteeringWheelCommands() {
-        service.queueCmd(scmcSteeringWheel);
-        doSleep();
-        service.queueCmd(new SteeringWheelPositionCommand());
+        if (cb_wheel.isChecked()) {
+            service.queueCmd(scmcSteeringWheel);
+            doSleep();
+            service.queueCmd(new SteeringWheelPositionCommand());
+        }
     }
 
     private void doSleep() {
@@ -201,6 +207,9 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
 
         gauge_steering_wheel_pos = findViewById(R.id.gauge_steering_wheel_pos);
+
+        cb_susp = findViewById(R.id.cb_susp);
+        cb_wheel = findViewById(R.id.cb_wheel);
 
         fillDispatcher();
     }

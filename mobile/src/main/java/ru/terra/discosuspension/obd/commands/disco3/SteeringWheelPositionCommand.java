@@ -18,7 +18,7 @@ public class SteeringWheelPositionCommand extends ObdProtocolCommand {
     public int calc() {
         int a = HexUtil.extractDigitA(getResult(), STEERING_WHEEL_POS);
         int b = HexUtil.extractDigitB(getResult(), STEERING_WHEEL_POS);
-        return (int) ((a * 256 + b) * 0.1 - 780);
+        return (int) ((a * 256 + b) * 0.1 - 780) * -1;
     }
 
     @Override
