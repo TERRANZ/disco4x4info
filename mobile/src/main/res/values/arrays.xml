@@ -2,13 +2,13 @@
 <resources>
     <string-array name="protocolsNamesArray">
         <item>AUTO</item>
-        <item>SAE_J1850_PWM</item>
-        <item>SAE_J1850_VPW</item>
-        <item>ISO_9141_2</item>
+        <item>SAE J1850 PWM</item>
+        <item>SAE J1850 VPW</item>
+        <item>ISO 9141 2</item>
         <item>ISO_14230_4_KWP</item>
         <item>ISO_14230_4_KWP_FAST</item>
         <item>ISO_15765_4_CAN</item>
-        <item>ISO_15765_4_CAN_B</item>
+        <item>ISO_15765_4_CAN_B Disco 3 4.4</item>
         <item>ISO_15765_4_CAN_C</item>
         <item>ISO_15765_4_CAN_D</item>
         <item>SAE_J1939_CAN</item>

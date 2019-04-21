@@ -29,8 +29,10 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:onClick="selectProtocol"
         android:text="Подбор протокола"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="48dp" android:onClick="selectProtocol" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_config"
+        tools:layout_editor_absoluteX="1dp" />
 
 </android.support.constraint.ConstraintLayout>

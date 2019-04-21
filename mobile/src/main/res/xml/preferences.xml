@@ -6,6 +6,14 @@
             android:key="bluetooth_list_preference"
             android:summary="List of paired bluetooth devices."
             android:title="Bluetooth Devices" />
+
+        <ListPreference
+            android:dialogTitle="ODB Protocol"
+            android:key="obd_protocol"
+            android:summary="List of protocols"
+            android:title="Obd protocol"
+            android:entries="@array/protocolsNamesArray"
+            android:entryValues="@array/protocolsArray"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Тайминги">
 
