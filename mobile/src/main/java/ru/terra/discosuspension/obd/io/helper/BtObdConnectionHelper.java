@@ -66,6 +66,11 @@ public class BtObdConnectionHelper {
             connectionStatus = ConnectionStatus.CONNECTED;
         } catch (Exception e1) {
             Logger.e(TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
+            if (sock == null) {
+                sendStatus("Ошибка: Bluetooth отключен", false);
+                disconnect();
+                throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
+            }
             Class<?> clazz = sock.getRemoteDevice().getClass();
             Class<?>[] paramTypes = new Class<?>[]{Integer.TYPE};
             try {

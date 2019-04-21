@@ -9,6 +9,7 @@ import org.acra.ACRA;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
+import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.ConfigActivity;
 import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
@@ -50,8 +51,12 @@ public class ObdGatewayService extends AbstractGatewayService {
         }
 
         connectionHelper.doResetAdapter(ctx.get());
-
+        final String storedProtocolName = prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
         ObdProtocols prot = ObdProtocols.ISO_15765_4_CAN_B;
+        if (storedProtocolName != null) {
+            prot = ObdProtocols.valueOf(storedProtocolName);
+        }
+
         try {
             connectionHelper.doSelectProtocol(prot, ctx.get());
         } catch (BTOBDConnectionException e) {
