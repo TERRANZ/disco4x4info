@@ -16,8 +16,8 @@ import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
 import ru.terra.discosuspension.activity.FourXFourInfoActivity;
-import ru.terra.discosuspension.obd.commands.AmbientAirTemperatureObdCommand;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
+import ru.terra.discosuspension.obd.commands.EngineRPMCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
@@ -125,7 +125,7 @@ public class BtObdConnectionHelper {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if (!executeCommand(new AmbientAirTemperatureObdCommand(), runContext)) {
+        if (!executeCommand(new EngineRPMCommand(), runContext)) {
             Logger.w(TAG, "Unable to select protocol");
             throw new BTOBDConnectionException("Unable to select protocol");
         }
@@ -137,7 +137,7 @@ public class BtObdConnectionHelper {
         try {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
         } catch (Exception e) {
-            Logger.e(TAG, "Unable to execute command", e);
+//            Logger.w(TAG, "Unable to execute command", e);
             return false;
         }
         if (runContext instanceof FourXFourInfoActivity)

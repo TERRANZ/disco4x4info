@@ -11,6 +11,7 @@ import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
 import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.ConfigActivity;
+import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
 
@@ -41,29 +42,62 @@ public class ObdGatewayService extends AbstractGatewayService {
             return false;
         }
 
-        try {
-            connectionHelper.connect();
-        } catch (BTOBDConnectionException e) {
-            Logger.e(TAG, "There was an error while establishing connection", e);
-            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
-            stopService();
-            return false;
+        while (connectionHelper.getConnectionStatus() != ConnectionStatus.CONNECTED) {
+
+            try {
+                connectionHelper.connect();
+            } catch (BTOBDConnectionException e) {
+                Logger.e(TAG, "There was an error while establishing connection", e);
+                NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
+//            stopService();
+//            return false;
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
 
-        connectionHelper.doResetAdapter(ctx.get());
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
+        while (connectionHelper.getConnectionStatus() != ConnectionStatus.RESETTED) {
+
+            try {
+                connectionHelper.doResetAdapter(ctx.get());
+            } catch (Exception e) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
         final String storedProtocolName = prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
         ObdProtocols prot = ObdProtocols.ISO_15765_4_CAN_B;
         if (storedProtocolName != null) {
             prot = ObdProtocols.valueOf(storedProtocolName);
         }
 
-        try {
-            connectionHelper.doSelectProtocol(prot, ctx.get());
-        } catch (BTOBDConnectionException e) {
-            Logger.e(TAG, "There was an error while selecting protocol", e);
-            ACRA.getErrorReporter().handleSilentException(e);
-            stopService();
-            return false;
+        while (connectionHelper.getConnectionStatus() != ConnectionStatus.INWORK) {
+
+            try {
+                connectionHelper.doSelectProtocol(prot, ctx.get());
+            } catch (BTOBDConnectionException e) {
+                Logger.e(TAG, "There was an error while selecting protocol", e);
+                ACRA.getErrorReporter().handleSilentException(e);
+//                stopService();
+//                return false;
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
 
         queueCounter = 0L;

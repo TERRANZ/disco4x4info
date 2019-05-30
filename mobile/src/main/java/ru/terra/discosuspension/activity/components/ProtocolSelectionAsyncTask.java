@@ -46,7 +46,7 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
         }
 
         boolean found = false;
-        int currentProtocol = ObdProtocols.values().length - 1;
+        int currentProtocol = ObdProtocols.values().length - 4; //do not try 3 last protocols
         try {
             connectionHelper.start(remoteDevice);
         } catch (BTOBDConnectionException e) {

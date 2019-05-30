@@ -11,9 +11,6 @@
         <item>ISO_15765_4_CAN_B Disco 3 4.4</item>
         <item>ISO_15765_4_CAN_C</item>
         <item>ISO_15765_4_CAN_D</item>
-        <item>SAE_J1939_CAN</item>
-        <item>USER1_CAN</item>
-        <item>USER2_CAN</item>
     </string-array>
 
     <string-array name="protocolsArray">
@@ -27,8 +24,5 @@
         <item>ISO_15765_4_CAN_B</item>
         <item>ISO_15765_4_CAN_C</item>
         <item>ISO_15765_4_CAN_D</item>
-        <item>SAE_J1939_CAN</item>
-        <item>USER1_CAN</item>
-        <item>USER2_CAN</item>
     </string-array>
 </resources>
