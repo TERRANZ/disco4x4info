@@ -8,7 +8,7 @@ import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
  */
 public class ObdResetFixCommand extends ObdProtocolCommand {
 
-    public  ObdResetFixCommand() {
+    public ObdResetFixCommand() {
         super("ATZ");
     }
 

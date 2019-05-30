@@ -23,6 +23,7 @@
         </activity>
 
         <service android:name=".obd.io.ObdGatewayService" />
+        <service android:name=".service.OBDWorkerService" />
 
         <activity
             android:name=".activity.FourXFourInfoActivity"

@@ -22,6 +22,7 @@ import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
+import ru.terra.discosuspension.service.OBDWorkerService;
 
 /**
  * Date: 12.02.15
@@ -141,7 +142,7 @@ public class BtObdConnectionHelper {
             return false;
         }
         if (runContext instanceof FourXFourInfoActivity)
-            ((FourXFourInfoActivity) runContext).runOnUiThread(() -> ((FourXFourInfoActivity) runContext).stateUpdate(cmd));
+            ((FourXFourInfoActivity) runContext).runOnUiThread(() -> ((OBDWorkerService) runContext).stateUpdate(cmd));
         return true;
     }
 

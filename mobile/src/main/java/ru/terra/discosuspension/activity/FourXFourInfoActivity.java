@@ -1,187 +1,34 @@
 package ru.terra.discosuspension.activity;
 
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import de.nitri.gauge.Gauge;
-import pt.lighthouselabs.obd.commands.ObdCommand;
-import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.R;
-import ru.terra.discosuspension.obd.commands.disco3.CurrentGearCommand;
-import ru.terra.discosuspension.obd.commands.disco3.DriveShiftPositionCommand;
-import ru.terra.discosuspension.obd.commands.disco3.GearBoxTempCommand;
-import ru.terra.discosuspension.obd.commands.disco3.RearDiffBlockCommand;
-import ru.terra.discosuspension.obd.commands.disco3.RearDiffTempCommand;
-import ru.terra.discosuspension.obd.commands.disco3.SelectControlModuleCommand;
-import ru.terra.discosuspension.obd.commands.disco3.SteeringWheelPositionCommand;
-import ru.terra.discosuspension.obd.commands.disco3.SuspensionHeightCommand;
-import ru.terra.discosuspension.obd.commands.disco3.TransferCaseRotEngCommand;
-import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPositionCommand;
-import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
-import ru.terra.discosuspension.obd.io.AbstractGatewayService;
-import ru.terra.discosuspension.obd.io.ObdGatewayService;
-
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.GEARBOX_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.REAR_DIFF_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.STEERING_WHEEL_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.SUSPENSION_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE;
+import ru.terra.discosuspension.activity.components.ObdResult;
+import ru.terra.discosuspension.service.OBDWorkerService;
 
 public class FourXFourInfoActivity extends AppCompatActivity {
     private static final String TAG = FourXFourInfoActivity.class.getName();
-    private AbstractGatewayService service;
-    private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
-    private final SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(REAR_DIFF_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(SUSPENSION_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(TRANSFER_CASE_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(GEARBOX_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcSteeringWheel = new SelectControlModuleCommand(STEERING_WHEEL_CONTROL_MODULE);
 
     private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range, tv_gb_shit_pos;
     private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
     private Gauge gauge_steering_wheel_pos;
-    private CheckBox cb_wheel, cb_susp;
-
-    private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
-    private final static long SUSP_REQ_DIFF = 1000;
-    private final static long GB_REQ_DIFF = 1000;
-
-    private int OBD_SLEEP_UPDATE = 0;
-    private int OBD_SLEEP_SELECT_CM = 0;
-    private int TCCM_ENG_ROT_BLOCK = 0;
-
-    private interface CommandHandler {
-        void handle(ObdCommand cmd);
-    }
-
-    private ServiceConnection serviceConn = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder binder) {
-            service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
-            service.setContext(FourXFourInfoActivity.this);
-            Logger.i(TAG, "Service connected, starting queue");
-
-            if (!service.isRunning())
-                if (!service.startService()) {
-                    Toast.makeText(getApplicationContext(), "Не запустился сервис", Toast.LENGTH_LONG).show();
-                    finish();
-                    return;
-                }
-
-            new Handler().post(mQueueCommands);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-        }
-    };
-
-    private final Runnable mQueueCommands = new Runnable() {
-        public void run() {
-            if (service != null && service.getCurrentQueueSize() == 0) {
-                //Rear diff
-                addRDCMCommands();
-                //suspension
-                addSuspensionCommands();
-                //transfer case
-                addTCComamnds();
-                //gearbox
-                addGearBoxCommands();
-                //steering wheel
-                addSteeringWheelCommands();
-            }
-            new Handler().postDelayed(mQueueCommands, OBD_SLEEP_UPDATE);
-        }
-    };
-
-    private void addRDCMCommands() {
-        //RDCM
-        service.queueCmd(scmcRearDiff);
-        doSleep();
-        service.queueCmd(new RearDiffTempCommand());
-        service.queueCmd(new RearDiffBlockCommand());
-        doSleep();
-    }
-
-    private void addSuspensionCommands() {
-        if (cb_susp.isChecked()) {
-            if (System.currentTimeMillis() - lastSuspensionRequest > SUSP_REQ_DIFF) {
-                service.queueCmd(scmcSuspension);
-                doSleep();
-                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_LEFT));
-                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.FRONT_RIGHT));
-                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_LEFT));
-                service.queueCmd(new SuspensionHeightCommand(SuspensionHeightCommand.REAR_RIGHT));
-                doSleep();
-                lastSuspensionRequest = System.currentTimeMillis();
-            }
-        }
-    }
-
-    private void addTCComamnds() {
-        service.queueCmd(scmcTC);
-        doSleep();
-        service.queueCmd(new TransferCaseTempCommand());
-        service.queueCmd(new TransferCaseRotEngCommand());
-        service.queueCmd(new TransferCaseSolenoidPositionCommand());
-        doSleep();
-    }
-
-    private void addGearBoxCommands() {
-        if (System.currentTimeMillis() - lastGBRequest > GB_REQ_DIFF) {
-            service.queueCmd(scmcGearBox);
-            doSleep();
-            service.queueCmd(new CurrentGearCommand());
-            service.queueCmd(new GearBoxTempCommand());
-            service.queueCmd(new DriveShiftPositionCommand());
-            doSleep();
-            lastGBRequest = System.currentTimeMillis();
-        }
-    }
-
-    private void addSteeringWheelCommands() {
-        if (cb_wheel.isChecked()) {
-            service.queueCmd(scmcSteeringWheel);
-            doSleep();
-            service.queueCmd(new SteeringWheelPositionCommand());
-        }
-    }
-
-    private void doSleep() {
-        try {
-            Thread.sleep(OBD_SLEEP_SELECT_CM);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_4x4_info);
-
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), 20);
-        OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), 20);
-        TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), 180);
 
         tv_gb_temp = findViewById(R.id.tv_gb_temp);
         tv_tb_temp = findViewById(R.id.tv_tb_temp);
@@ -208,105 +55,50 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         gauge_steering_wheel_pos = findViewById(R.id.gauge_steering_wheel_pos);
 
-        cb_susp = findViewById(R.id.cb_susp);
-        cb_wheel = findViewById(R.id.cb_wheel);
+        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ObdResult result = (ObdResult) intent.getSerializableExtra("result");
+                tv_gb_temp.setText(result.gbTemp);
+                tv_tb_temp.setText(result.tcTemp);
+                tv_rd_temp.setText(result.rdTemp);
 
-        fillDispatcher();
-    }
+                if (result.rdBlock) {
+                    iv_rear_diff_lock.setImageResource(R.drawable.locked);
+                } else {
+                    iv_rear_diff_lock.setImageResource(R.drawable.unlocked);
+                }
 
-    private void fillDispatcher() {
-        dispatch.put(RearDiffTempCommand.class, cmd -> tv_rd_temp.setText(cmd.getFormattedResult()));
+                if (result.tcBlock) {
+                    iv_central_diff_lock.setImageResource(R.drawable.locked);
+                } else {
+                    iv_central_diff_lock.setImageResource(R.drawable.unlocked);
+                }
 
-        dispatch.put(RearDiffBlockCommand.class, cmd -> {
-            if (cmd.getFormattedResult().equalsIgnoreCase("on")) {
-                iv_rear_diff_lock.setImageResource(R.drawable.locked);
-            } else {
-                iv_rear_diff_lock.setImageResource(R.drawable.unlocked);
+                tv_tc_sol_len.setText(result.tcSolLen);
+                tv_range.setText(result.tcSolPos);
+                tv_curr_gear.setText(result.currentGear);
+                tv_tc_rot.setText(result.tcRotation);
+
+                pb_front_left.setProgress(result.suspFLVal);
+                tv_w_fl.setText(result.suspFLText);
+                pb_front_right.setProgress(result.suspFRVal);
+                tv_w_fr.setText(result.suspFRText);
+                pb_rear_left.setProgress(result.suspRLVal);
+                tv_w_rl.setText(result.suspRLText);
+                pb_rear_right.setProgress(result.suspRRVal);
+                tv_w_rr.setText(result.suspRRText);
+
+                tv_gear.setText(result.currentGear);
+                gauge_steering_wheel_pos.setValue(result.wheelPos);
             }
-        });
-
-        dispatch.put(TransferCaseRotEngCommand.class, cmd -> {
-            tv_tc_rot.setText(cmd.getFormattedResult());
-            final TransferCaseRotEngCommand tcrec = (TransferCaseRotEngCommand) cmd;
-            if (tcrec.getRes() > TCCM_ENG_ROT_BLOCK) {
-                iv_central_diff_lock.setImageResource(R.drawable.locked);
-            } else {
-                iv_central_diff_lock.setImageResource(R.drawable.unlocked);
-            }
-
-        });
-
-        dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> {
-            tv_tc_sol_len.setText(cmd.getFormattedResult());
-            tv_range.setText(((TransferCaseSolenoidPositionCommand) cmd).isHi() ? "Hi" : "Lo");
-        });
-
-        dispatch.put(TransferCaseTempCommand.class, cmd -> tv_tb_temp.setText(cmd.getFormattedResult()));
-
-        dispatch.put(CurrentGearCommand.class, cmd -> tv_curr_gear.setText(cmd.getFormattedResult()));
-
-        dispatch.put(GearBoxTempCommand.class, cmd -> tv_gb_temp.setText(cmd.getFormattedResult()));
-
-        dispatch.put(SuspensionHeightCommand.class, cmd -> {
-            final SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
-            switch (shc.getWheel()) {
-                case SuspensionHeightCommand.FRONT_LEFT: {
-                    pb_front_left.setProgress((int) (shc.calc() + 10));
-                    tv_w_fl.setText(cmd.getFormattedResult());
-                }
-                break;
-                case SuspensionHeightCommand.FRONT_RIGHT: {
-                    pb_front_right.setProgress((int) (shc.calc() + 10));
-                    tv_w_fr.setText(cmd.getFormattedResult());
-                }
-                break;
-                case SuspensionHeightCommand.REAR_LEFT: {
-                    pb_rear_left.setProgress((int) (shc.calc() + 10));
-                    tv_w_rl.setText(cmd.getFormattedResult());
-                }
-                break;
-                case SuspensionHeightCommand.REAR_RIGHT: {
-                    pb_rear_right.setProgress((int) (shc.calc() + 10));
-                    tv_w_rr.setText(cmd.getFormattedResult());
-                }
-                break;
-
-            }
-        });
-
-        dispatch.put(DriveShiftPositionCommand.class, cmd -> {
-            tv_gear.setText(cmd.getFormattedResult());
-        });
-
-        dispatch.put(SteeringWheelPositionCommand.class, cmd -> {
-            gauge_steering_wheel_pos.setValue(((SteeringWheelPositionCommand) cmd).calc());
-        });
+        }, new IntentFilter("update"));
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        final Intent serviceIntent = new Intent(getApplicationContext(), ObdGatewayService.class);
+        final Intent serviceIntent = new Intent(getApplicationContext(), OBDWorkerService.class);
         startService(serviceIntent);
-        bindService(serviceIntent, serviceConn, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unbindService(serviceConn);
-        service = null;
-        if (isFinishing()) {
-            stopService(new Intent(getApplicationContext(), ObdGatewayService.class));
-            Logger.i(TAG, "Stopping service");
-        }
-    }
-
-    public void stateUpdate(ObdCommand cmd) {
-        CommandHandler h = dispatch.get(cmd.getClass());
-        Logger.i(TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
-        if (h != null) {
-            h.handle(cmd);
-        }
     }
 }

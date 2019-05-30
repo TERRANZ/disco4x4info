@@ -2,8 +2,8 @@ package ru.terra.discosuspension.obd.commands.disco3;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
-import static ru.terra.discosuspension.obd.constants.CommandID.RD_TEMP;
 import static ru.terra.discosuspension.obd.HexUtil.extractDigitA;
+import static ru.terra.discosuspension.obd.constants.CommandID.RD_TEMP;
 
 public class RearDiffTempCommand extends ObdProtocolCommand {
     private static final int TEMP_CONST = 40;

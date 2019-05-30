@@ -13,7 +13,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Set;
 
-import pt.lighthouselabs.obd.enums.ObdProtocols;
 import ru.terra.discosuspension.R;
 
 public class ConfigActivity extends PreferenceActivity implements
