@@ -83,7 +83,7 @@ public class OBDWorkerService extends IntentService {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
-            service.setContext(getApplicationContext());
+            service.setContext(OBDWorkerService.this);
             Logger.i(TAG, "Service connected, starting queue");
 
             if (!service.isRunning())
@@ -111,7 +111,7 @@ public class OBDWorkerService extends IntentService {
 
         fillDispatcher();
 
-        final Intent serviceIntent = new Intent(getApplicationContext(), ObdGatewayService.class);
+        final Intent serviceIntent = new Intent(this, ObdGatewayService.class);
         startService(serviceIntent);
         bindService(serviceIntent, serviceConn, Context.BIND_AUTO_CREATE);
         while (!stop) {
@@ -128,7 +128,7 @@ public class OBDWorkerService extends IntentService {
         super.onDestroy();
         unbindService(serviceConn);
         service = null;
-        stopService(new Intent(getApplicationContext(), ObdGatewayService.class));
+        stopService(new Intent(this, ObdGatewayService.class));
         Logger.i(TAG, "Stopping service");
     }
 

@@ -15,7 +15,6 @@ import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
-import ru.terra.discosuspension.activity.FourXFourInfoActivity;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.EngineRPMCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
@@ -135,15 +134,17 @@ public class BtObdConnectionHelper {
     }
 
     public boolean executeCommand(final ObdCommand cmd, final Context runContext) throws ObdResponseException {
+        boolean ret = false;
         try {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
+            ret = true;
         } catch (Exception e) {
-//            Logger.w(TAG, "Unable to execute command", e);
-            return false;
+            Logger.w(TAG, "Unable to execute command", e);
+            ret = false;
         }
-        if (runContext instanceof FourXFourInfoActivity)
-            ((FourXFourInfoActivity) runContext).runOnUiThread(() -> ((OBDWorkerService) runContext).stateUpdate(cmd));
-        return true;
+        if (runContext instanceof OBDWorkerService)
+            ((OBDWorkerService) runContext).stateUpdate(cmd);
+        return ret;
     }
 
     public BluetoothSocket getSock() {

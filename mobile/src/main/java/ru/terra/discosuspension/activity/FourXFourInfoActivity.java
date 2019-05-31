@@ -101,4 +101,16 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         final Intent serviceIntent = new Intent(getApplicationContext(), OBDWorkerService.class);
         startService(serviceIntent);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
+    }
+
+    private void doUnbindService() {
+        if (isFinishing()) {
+            stopService(new Intent(getApplicationContext(), OBDWorkerService.class));
+        }
+    }
 }
