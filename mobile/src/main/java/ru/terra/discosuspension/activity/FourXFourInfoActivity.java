@@ -89,7 +89,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
                 pb_rear_right.setProgress(result.suspRRVal);
                 tv_w_rr.setText(result.suspRRText);
 
-                tv_gear.setText(result.currentGear);
+                tv_gear.setText(result.driveShiftPos);
                 gauge_steering_wheel_pos.setValue(result.wheelPos);
             }
         }, new IntentFilter("update"));
