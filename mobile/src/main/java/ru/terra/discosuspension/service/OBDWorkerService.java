@@ -32,6 +32,7 @@ import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPosition
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
 import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
+import ru.terra.discosuspension.obd.io.StateUpdater;
 
 import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.GEARBOX_CONTROL_MODULE;
 import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.REAR_DIFF_CONTROL_MODULE;
@@ -39,7 +40,7 @@ import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.STEERING_W
 import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.SUSPENSION_CONTROL_MODULE;
 import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE;
 
-public class OBDWorkerService extends IntentService {
+public class OBDWorkerService extends IntentService implements StateUpdater {
     private static final String TAG = OBDWorkerService.class.getName();
 
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
@@ -59,14 +60,14 @@ public class OBDWorkerService extends IntentService {
     private final ObdResult obdResult = new ObdResult();
     private SharedPreferences sp;
 
-    public void stateUpdate(ObdCommand cmd) {
-        CommandHandler h = dispatch.get(cmd.getClass());
-//        Logger.i(TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
+    @Override
+    public void stateUpdate(final ObdCommand cmd) {
+        final CommandHandler h = dispatch.get(cmd.getClass());
         if (h != null) {
             h.handle(cmd);
         }
 
-        Intent resultIntent = new Intent();
+        final Intent resultIntent = new Intent();
         resultIntent.setAction("update");
         resultIntent.putExtra("result", obdResult);
         LocalBroadcastManager.getInstance(this).sendBroadcast(resultIntent);
@@ -84,7 +85,7 @@ public class OBDWorkerService extends IntentService {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
-            service.setContext(OBDWorkerService.this);
+            service.setStateUpdater(OBDWorkerService.this);
             Logger.i(TAG, "Service connected, starting queue");
 
             if (!service.isRunning())

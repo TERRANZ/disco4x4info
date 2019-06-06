@@ -9,9 +9,9 @@ import pt.lighthouselabs.obd.enums.ObdProtocols;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.ConfigActivity;
+import ru.terra.discosuspension.obd.OBDBackend;
 import ru.terra.discosuspension.obd.commands.GetAvailPIDSCommand;
 import ru.terra.discosuspension.obd.commands.TryProtocolCommand;
-import ru.terra.discosuspension.obd.io.bt.BtObdConnectionHelper;
 import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
 /**
@@ -21,11 +21,11 @@ import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String> {
 
     private static final String TAG = ProtocolSelectionAsyncTask.class.getName();
-    private BtObdConnectionHelper connectionHelper;
+    private final OBDBackend obdBackend;
 
-    public ProtocolSelectionAsyncTask(Context a, BtObdConnectionHelper connectionHelper) {
+    public ProtocolSelectionAsyncTask(Context a, OBDBackend obdBackend) {
         super(300000L, a);
-        this.connectionHelper = connectionHelper;
+        this.obdBackend = obdBackend;
         showDialog("Определение протокола", "Запуск...");
     }
 
@@ -48,7 +48,7 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
         boolean found = false;
         int currentProtocol = ObdProtocols.values().length - 4; //do not try 3 last protocols
         try {
-            connectionHelper.start(remoteDevice);
+            obdBackend.start(remoteDevice);
         } catch (BTOBDConnectionException e) {
             publishProgress("Ошибка при подключении: " + e.getMessage());
             try {
@@ -73,7 +73,7 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
                 Logger.d(TAG, "Сброс адаптера");
                 try {
                     tries++;
-                    connectionHelper.doResetAdapter(context.get());
+                    obdBackend.doResetAdapter();
                 } catch (Exception e) {
                     Logger.e(TAG, "Controller unable to ATZ command, reconnect", e);
                     try {
@@ -158,10 +158,10 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
     }
 
     private void connect() {
-        connectionHelper.disconnect();
+        obdBackend.disconnect();
         try {
-            connectionHelper.connect();
-            connectionHelper.doResetAdapter(context.get());
+            obdBackend.connect();
+            obdBackend.doResetAdapter();
         } catch (BTOBDConnectionException e) {
             publishProgress("Ошибка при подключении: " + e.getMessage());
             try {
@@ -174,12 +174,12 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
     }
 
     private boolean execCommand(ObdCommand cmd) {
-        return connectionHelper.executeCommand(cmd, context.get());
+        return obdBackend.executeCommand(cmd);
 
     }
 
     private void stopTask() {
-        connectionHelper.disconnect();
+        obdBackend.disconnect();
     }
 
     @Override

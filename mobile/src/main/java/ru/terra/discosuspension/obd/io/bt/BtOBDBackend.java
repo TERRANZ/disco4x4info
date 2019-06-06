@@ -3,7 +3,6 @@ package ru.terra.discosuspension.obd.io.bt;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -14,21 +13,20 @@ import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
-import ru.terra.discosuspension.obd.ObdConnectionHelper;
+import ru.terra.discosuspension.obd.OBDBackend;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
-import ru.terra.discosuspension.service.OBDWorkerService;
 
 /**
  * Date: 12.02.15
  * Time: 21:20
  */
-public class BtObdConnectionHelper implements ObdConnectionHelper {
+public class BtOBDBackend implements OBDBackend {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private static final String TAG = BtObdConnectionHelper.class.getName();
+    private static final String TAG = BtOBDBackend.class.getName();
     private BluetoothSocket sock = null;
     private String remoteDevice;
     private ConnectionStatus connectionStatus = ConnectionStatus.NC;
@@ -99,10 +97,10 @@ public class BtObdConnectionHelper implements ObdConnectionHelper {
     }
 
     @Override
-    public void doResetAdapter(final Context runContext) throws ObdResponseException {
-        if (executeCommand(new ObdResetFixCommand(), runContext)) {
+    public void doResetAdapter() throws ObdResponseException {
+        if (executeCommand(new ObdResetFixCommand())) {
             sendStatus("Сброс адаптера", false);
-            if (executeCommand(new DisplayHeaderCommand(), runContext)) {
+            if (executeCommand(new DisplayHeaderCommand())) {
                 connectionStatus = ConnectionStatus.RESETTED;
             } else {
                 connectionStatus = ConnectionStatus.ERROR;
@@ -114,11 +112,11 @@ public class BtObdConnectionHelper implements ObdConnectionHelper {
     }
 
     @Override
-    public void doSelectProtocol(final ObdProtocols prot, final Context runContext)
+    public void doSelectProtocol(final ObdProtocols prot)
             throws BTOBDConnectionException {
         // For now set protocol to AUTO
         Logger.d(TAG, "Selecting protocol: " + prot.name());
-        if (executeCommand(new SelectProtocolObdCommand(prot), runContext)) {
+        if (executeCommand(new SelectProtocolObdCommand(prot))) {
             sendStatus("Выставление протокола", false);
             connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
             sendStatus("В работе", true);
@@ -131,7 +129,7 @@ public class BtObdConnectionHelper implements ObdConnectionHelper {
     }
 
     @Override
-    public boolean executeCommand(final ObdCommand cmd, final Context runContext)
+    public boolean executeCommand(final ObdCommand cmd)
             throws ObdResponseException {
         boolean ret;
         try {
@@ -140,9 +138,6 @@ public class BtObdConnectionHelper implements ObdConnectionHelper {
         } catch (Exception e) {
             ret = false;
         }
-
-        if (runContext instanceof OBDWorkerService)
-            ((OBDWorkerService) runContext).stateUpdate(cmd);
 
         return ret;
     }
