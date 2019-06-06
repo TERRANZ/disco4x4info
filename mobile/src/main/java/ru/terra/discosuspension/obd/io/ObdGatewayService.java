@@ -3,6 +3,7 @@ package ru.terra.discosuspension.obd.io;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import org.acra.ACRA;
 
@@ -15,96 +16,119 @@ import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
 import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
 
-/**
- * This service is primarily responsible for establishing and maintaining a
- * permanent connection between the device where the application runs and a more
- * OBD Bluetooth interface.
- * <p/>
- * Secondarily, it will serve as a repository of ObdCommandJobs and at the same
- * time the application state-machine.
- */
 public class ObdGatewayService extends AbstractGatewayService {
 
     private static final String TAG = ObdGatewayService.class.getName();
 
-    public BtObdConnectionHelper connectionHelper;
+    private BtObdConnectionHelper connectionHelper;
+    private SharedPreferences prefs;
 
     public boolean startService() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         connectionHelper = BtObdConnectionHelper.getInstance(getApplicationContext());
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        boolean stop = false;
+
+        while (!stop) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            doStep();
+
+            if (connectionHelper.getConnectionStatus() == ConnectionStatus.INWORK) {
+                stop = true;
+                queueCounter = 0L;
+                Logger.d(TAG, "Gateway service started");
+                isRunning = true;
+            } else if (connectionHelper.getConnectionStatus() == ConnectionStatus.ERROR) {
+//                stop = true;
+//                queueCounter = 0L;
+                Logger.d(TAG, "Gateway service error!");
+//                isRunning = false;
+                connectionHelper.disconnect();
+            }
+        }
+
+        return isRunning;
+    }
+
+    private void doStep() {
+        Log.i(TAG, "doStep: curr status: " + connectionHelper.getConnectionStatus().name());
+        switch (connectionHelper.getConnectionStatus()) {
+            case NC:
+                if (!doStart()) {
+                    Log.i(TAG, "doStep: not started");
+                }
+                break;
+            case DEV_SELECTED:
+                if (!doConnect()) {
+                    Log.i(TAG, "doStep: not connected");
+                }
+                break;
+            case CONNECTED:
+                if (!doReset()) {
+                    Log.i(TAG, "doStep: not resetted");
+                }
+                break;
+            case RESETTED:
+                if (!doSelectProtocol()) {
+                    Log.i(TAG, "doStep: not selected protocol");
+                }
+                break;
+        }
+    }
+
+    private boolean doSelectProtocol() {
+        final String storedProtocolName =
+                prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
+        final ObdProtocols prot = storedProtocolName != null ?
+                ObdProtocols.valueOf(storedProtocolName) : ObdProtocols.ISO_15765_4_CAN_B;
+        try {
+            connectionHelper.doSelectProtocol(prot, ctx.get());
+        } catch (final BTOBDConnectionException e) {
+            Logger.e(TAG, "There was an error while selecting protocol", e);
+            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно выбрать протокол", false);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean doReset() {
+        try {
+            connectionHelper.doResetAdapter(ctx.get());
+        } catch (final Exception e) {
+            Logger.e(TAG, "There was an error while resetting adapter", e);
+            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно сбросить адаптер OBD2", false);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean doConnect() {
+        try {
+            connectionHelper.connect();
+        } catch (final BTOBDConnectionException e) {
+            Logger.e(TAG, "There was an error while establishing connection", e);
+            NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean doStart() {
         try {
             connectionHelper.start(prefs.getString(ConfigActivity.BLUETOOTH_LIST_KEY, null));
-        } catch (BTOBDConnectionException e) {
+        } catch (final BTOBDConnectionException e) {
             Logger.e(TAG, "There was an error while starting connection", e);
-            stopService();
             NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Не выбран OBD2 адаптер", false);
             return false;
         }
-
-        while (connectionHelper.getConnectionStatus() != ConnectionStatus.CONNECTED) {
-
-            try {
-                connectionHelper.connect();
-            } catch (BTOBDConnectionException e) {
-                Logger.e(TAG, "There was an error while establishing connection", e);
-                NotificationInstance.getInstance().createInfoNotification(getApplicationContext(), "Невозможно подключиться к адаптеру OBD2", false);
-//            stopService();
-//            return false;
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-
-        while (connectionHelper.getConnectionStatus() != ConnectionStatus.RESETTED) {
-
-            try {
-                connectionHelper.doResetAdapter(ctx.get());
-            } catch (Exception e) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-        final String storedProtocolName = prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
-        ObdProtocols prot = ObdProtocols.ISO_15765_4_CAN_B;
-        if (storedProtocolName != null) {
-            prot = ObdProtocols.valueOf(storedProtocolName);
-        }
-
-        while (connectionHelper.getConnectionStatus() != ConnectionStatus.INWORK) {
-
-            try {
-                connectionHelper.doSelectProtocol(prot, ctx.get());
-            } catch (BTOBDConnectionException e) {
-                Logger.e(TAG, "There was an error while selecting protocol", e);
-                ACRA.getErrorReporter().handleSilentException(e);
-//                stopService();
-//                return false;
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-
-        queueCounter = 0L;
-        Logger.d(TAG, "Initialization jobs queued.");
-        isRunning = true;
         return true;
     }
+
 
     /**
      * Runs the queue until the service is stopped
@@ -120,7 +144,7 @@ public class ObdGatewayService extends AbstractGatewayService {
                     job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
                     connectionHelper.executeCommand(job.getCommand(), ctx.get());
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if (job != null) {
                     job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                     ACRA.getErrorReporter().handleSilentException(e);

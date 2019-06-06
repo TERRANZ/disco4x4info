@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -16,6 +17,8 @@ import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.components.ObdResult;
 import ru.terra.discosuspension.service.OBDWorkerService;
 
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+
 public class FourXFourInfoActivity extends AppCompatActivity {
     private static final String TAG = FourXFourInfoActivity.class.getName();
 
@@ -24,6 +27,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
     private Gauge gauge_steering_wheel_pos;
+    private CheckBox cb_wheel, cb_susp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +58,12 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         iv_central_diff_lock = findViewById(R.id.iv_central_diff_lock);
 
         gauge_steering_wheel_pos = findViewById(R.id.gauge_steering_wheel_pos);
+
+        cb_susp = findViewById(R.id.cb_susp);
+        cb_wheel = findViewById(R.id.cb_wheel);
+
+        cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("susp", isChecked).apply());
+        cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("wheel", isChecked).apply());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override

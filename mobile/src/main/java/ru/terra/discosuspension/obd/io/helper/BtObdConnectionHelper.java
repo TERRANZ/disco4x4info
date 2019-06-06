@@ -16,7 +16,6 @@ import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
-import ru.terra.discosuspension.obd.commands.EngineRPMCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
@@ -44,17 +43,19 @@ public class BtObdConnectionHelper {
         return instance;
     }
 
-    public void start(String remoteDevice) throws BTOBDConnectionException {
+    public void start(final String remoteDevice) throws BTOBDConnectionException {
         this.remoteDevice = remoteDevice;
         Logger.d(TAG, "Starting service..");
-        if (remoteDevice == null || remoteDevice.isEmpty())
+        if (remoteDevice == null || remoteDevice.isEmpty()) {
+            connectionStatus = ConnectionStatus.NC;
             throw new BTOBDConnectionException("No Bluetooth device has been selected.");
+        }
         connectionStatus = ConnectionStatus.DEV_SELECTED;
     }
 
     public void connect() throws BTOBDConnectionException {
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice dev = btAdapter.getRemoteDevice(remoteDevice);
+        final BluetoothDevice dev = btAdapter.getRemoteDevice(remoteDevice);
         btAdapter.cancelDiscovery();
         Logger.d(TAG, "Starting OBD connection..");
         sendStatus("Подключение", false);
@@ -64,26 +65,28 @@ public class BtObdConnectionHelper {
             sock.connect();
             sendStatus("Подключено", false);
             connectionStatus = ConnectionStatus.CONNECTED;
-        } catch (Exception e1) {
+        } catch (final Exception e1) {
             Logger.e(TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
             if (sock == null) {
                 sendStatus("Ошибка: Bluetooth отключен", false);
                 disconnect();
+                connectionStatus = ConnectionStatus.ERROR;
                 throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
             }
             Class<?> clazz = sock.getRemoteDevice().getClass();
             Class<?>[] paramTypes = new Class<?>[]{Integer.TYPE};
             try {
-                Method m = clazz.getMethod("createRfcommSocket", paramTypes);
-                BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
+                final Method m = clazz.getMethod("createRfcommSocket", paramTypes);
+                final BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
                 sockFallback.connect();
                 sock = sockFallback;
                 sendStatus("Подключено", false);
                 connectionStatus = ConnectionStatus.CONNECTED;
-            } catch (Exception e2) {
+            } catch (final Exception e2) {
                 Logger.e(TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
                 sendStatus("Ошибка: Невозможно подключиться к адаптеру", false);
                 disconnect();
+                connectionStatus = ConnectionStatus.ERROR;
                 throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
             }
         }
@@ -94,56 +97,58 @@ public class BtObdConnectionHelper {
             // close socket
             try {
                 sock.close();
-                connectionStatus = ConnectionStatus.DISCONNECTED;
-                sendStatus("Отключено", true);
             } catch (IOException e) {
                 Logger.e(TAG, e.getMessage(), e);
             }
-        else
-            connectionStatus = ConnectionStatus.NC;
+
+        connectionStatus = ConnectionStatus.NC;
+        sendStatus("Отключено", true);
     }
 
-    public void doResetAdapter(Context runContext) throws ObdResponseException {
-        Logger.d(TAG, "Queing jobs for connection configuration..");
+    public void doResetAdapter(final Context runContext) throws ObdResponseException {
         if (executeCommand(new ObdResetFixCommand(), runContext)) {
             sendStatus("Сброс адаптера", false);
-            if (executeCommand(new DisplayHeaderCommand(), runContext))
+            if (executeCommand(new DisplayHeaderCommand(), runContext)) {
                 connectionStatus = ConnectionStatus.RESETTED;
+            } else {
+                connectionStatus = ConnectionStatus.ERROR;
+            }
+        } else {
+            connectionStatus = ConnectionStatus.ERROR;
         }
 
     }
 
-    public void doSelectProtocol(ObdProtocols prot, Context runContext) throws BTOBDConnectionException {
+    public void doSelectProtocol(final ObdProtocols prot, final Context runContext)
+            throws BTOBDConnectionException {
         // For now set protocol to AUTO
         Logger.d(TAG, "Selecting protocol: " + prot.name());
-        executeCommand(new SelectProtocolObdCommand(prot), runContext);
-        sendStatus("Выставление протокола", false);
-        connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
-        // Job for returning dummy data
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (!executeCommand(new EngineRPMCommand(), runContext)) {
+        if (executeCommand(new SelectProtocolObdCommand(prot), runContext)) {
+            sendStatus("Выставление протокола", false);
+            connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
+            sendStatus("В работе", true);
+            connectionStatus = ConnectionStatus.INWORK;
+        } else {
             Logger.w(TAG, "Unable to select protocol");
+            connectionStatus = ConnectionStatus.ERROR;
             throw new BTOBDConnectionException("Unable to select protocol");
         }
-        sendStatus("В работе", true);
-        connectionStatus = ConnectionStatus.INWORK;
     }
 
-    public boolean executeCommand(final ObdCommand cmd, final Context runContext) throws ObdResponseException {
+    public boolean executeCommand(final ObdCommand cmd, final Context runContext)
+            throws ObdResponseException {
         boolean ret = false;
         try {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
             ret = true;
         } catch (Exception e) {
-            Logger.w(TAG, "Unable to execute command", e);
+//            Logger.w(TAG, "Unable to execute command", e);
             ret = false;
         }
+
         if (runContext instanceof OBDWorkerService)
             ((OBDWorkerService) runContext).stateUpdate(cmd);
+
         return ret;
     }
 
@@ -155,7 +160,7 @@ public class BtObdConnectionHelper {
         return connectionStatus;
     }
 
-    private void sendStatus(String text, boolean finalMessage) {
+    private void sendStatus(final String text, final boolean finalMessage) {
         NotificationInstance.getInstance().createInfoNotification(context.get(), text, finalMessage);
     }
 }

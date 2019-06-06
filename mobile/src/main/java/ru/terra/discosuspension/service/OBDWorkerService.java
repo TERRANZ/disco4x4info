@@ -57,10 +57,11 @@ public class OBDWorkerService extends IntentService {
     private int TCCM_ENG_ROT_BLOCK = 0;
     private boolean stop = false;
     private final ObdResult obdResult = new ObdResult();
+    private SharedPreferences sp;
 
     public void stateUpdate(ObdCommand cmd) {
         CommandHandler h = dispatch.get(cmd.getClass());
-        Logger.i(TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
+//        Logger.i(TAG, "Command " + cmd.getClass().getCanonicalName() + " result: " + cmd.getResult());
         if (h != null) {
             h.handle(cmd);
         }
@@ -104,7 +105,7 @@ public class OBDWorkerService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
         OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), 20);
         OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), 20);
         TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), 180);
@@ -138,13 +139,17 @@ public class OBDWorkerService extends IntentService {
                 //Rear diff
                 addRDCMCommands();
                 //suspension
-                addSuspensionCommands();
+                if (sp.getBoolean("susp", true)) {
+                    addSuspensionCommands();
+                }
                 //transfer case
                 addTCComamnds();
                 //gearbox
                 addGearBoxCommands();
                 //steering wheel
-                addSteeringWheelCommands();
+                if (sp.getBoolean("wheel", true)) {
+                    addSteeringWheelCommands();
+                }
             }
             new Handler().postDelayed(mQueueCommands, OBD_SLEEP_UPDATE);
         }
