@@ -1,4 +1,4 @@
-package ru.terra.discosuspension.obd.io.helper;
+package ru.terra.discosuspension.obd.io.bt;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
@@ -15,34 +14,26 @@ import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.ObdResponseException;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
+import ru.terra.discosuspension.obd.ObdConnectionHelper;
 import ru.terra.discosuspension.obd.commands.DisplayHeaderCommand;
 import ru.terra.discosuspension.obd.commands.ObdResetFixCommand;
 import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
-import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
+import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 import ru.terra.discosuspension.service.OBDWorkerService;
 
 /**
  * Date: 12.02.15
  * Time: 21:20
  */
-public class BtObdConnectionHelper {
+public class BtObdConnectionHelper implements ObdConnectionHelper {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final String TAG = BtObdConnectionHelper.class.getName();
-    private static BtObdConnectionHelper instance = new BtObdConnectionHelper();
-    private WeakReference<Context> context;
     private BluetoothSocket sock = null;
     private String remoteDevice;
     private ConnectionStatus connectionStatus = ConnectionStatus.NC;
 
-    private BtObdConnectionHelper() {
-    }
-
-    public static BtObdConnectionHelper getInstance(final Context context) {
-        instance.context = new WeakReference<>(context);
-        return instance;
-    }
-
+    @Override
     public void start(final String remoteDevice) throws BTOBDConnectionException {
         this.remoteDevice = remoteDevice;
         Logger.d(TAG, "Starting service..");
@@ -53,6 +44,7 @@ public class BtObdConnectionHelper {
         connectionStatus = ConnectionStatus.DEV_SELECTED;
     }
 
+    @Override
     public void connect() throws BTOBDConnectionException {
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
         final BluetoothDevice dev = btAdapter.getRemoteDevice(remoteDevice);
@@ -92,6 +84,7 @@ public class BtObdConnectionHelper {
         }
     }
 
+    @Override
     public void disconnect() {
         if (sock != null)
             // close socket
@@ -105,6 +98,7 @@ public class BtObdConnectionHelper {
         sendStatus("Отключено", true);
     }
 
+    @Override
     public void doResetAdapter(final Context runContext) throws ObdResponseException {
         if (executeCommand(new ObdResetFixCommand(), runContext)) {
             sendStatus("Сброс адаптера", false);
@@ -119,6 +113,7 @@ public class BtObdConnectionHelper {
 
     }
 
+    @Override
     public void doSelectProtocol(final ObdProtocols prot, final Context runContext)
             throws BTOBDConnectionException {
         // For now set protocol to AUTO
@@ -135,14 +130,14 @@ public class BtObdConnectionHelper {
         }
     }
 
+    @Override
     public boolean executeCommand(final ObdCommand cmd, final Context runContext)
             throws ObdResponseException {
-        boolean ret = false;
+        boolean ret;
         try {
             cmd.run(sock.getInputStream(), sock.getOutputStream());
             ret = true;
         } catch (Exception e) {
-//            Logger.w(TAG, "Unable to execute command", e);
             ret = false;
         }
 
@@ -152,15 +147,12 @@ public class BtObdConnectionHelper {
         return ret;
     }
 
-    public BluetoothSocket getSock() {
-        return sock;
-    }
-
+    @Override
     public ConnectionStatus getConnectionStatus() {
         return connectionStatus;
     }
 
     private void sendStatus(final String text, final boolean finalMessage) {
-        NotificationInstance.getInstance().createInfoNotification(context.get(), text, finalMessage);
+        NotificationInstance.getInstance().createInfoNotification(text, finalMessage);
     }
 }

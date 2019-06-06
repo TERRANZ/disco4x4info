@@ -1,4 +1,4 @@
-package ru.terra.discosuspension.obd.io.helper.exception;
+package ru.terra.discosuspension.obd.io.bt.exception;
 
 /**
  * Date: 12.02.15

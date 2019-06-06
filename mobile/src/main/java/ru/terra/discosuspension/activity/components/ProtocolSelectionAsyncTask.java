@@ -11,8 +11,8 @@ import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.ConfigActivity;
 import ru.terra.discosuspension.obd.commands.GetAvailPIDSCommand;
 import ru.terra.discosuspension.obd.commands.TryProtocolCommand;
-import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
-import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
+import ru.terra.discosuspension.obd.io.bt.BtObdConnectionHelper;
+import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
 /**
  * Date: 05.01.15

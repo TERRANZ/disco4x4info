@@ -7,7 +7,7 @@ import android.view.View;
 
 import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.components.ProtocolSelectionAsyncTask;
-import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
+import ru.terra.discosuspension.obd.io.bt.BtObdConnectionHelper;
 
 public class MainActivity extends AppCompatActivity {
 

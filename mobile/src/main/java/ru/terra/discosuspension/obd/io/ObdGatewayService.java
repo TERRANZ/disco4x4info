@@ -13,8 +13,8 @@ import ru.terra.discosuspension.NotificationInstance;
 import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.ConfigActivity;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
-import ru.terra.discosuspension.obd.io.helper.BtObdConnectionHelper;
-import ru.terra.discosuspension.obd.io.helper.exception.BTOBDConnectionException;
+import ru.terra.discosuspension.obd.io.bt.BtObdConnectionHelper;
+import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
 public class ObdGatewayService extends AbstractGatewayService {
 
@@ -44,10 +44,7 @@ public class ObdGatewayService extends AbstractGatewayService {
                 Logger.d(TAG, "Gateway service started");
                 isRunning = true;
             } else if (connectionHelper.getConnectionStatus() == ConnectionStatus.ERROR) {
-//                stop = true;
-//                queueCounter = 0L;
                 Logger.d(TAG, "Gateway service error!");
-//                isRunning = false;
                 connectionHelper.disconnect();
             }
         }
