@@ -32,7 +32,7 @@ public class ObdGatewayService extends AbstractGatewayService {
 
         while (!stop) {
             try {
-                Thread.sleep(2000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -80,8 +80,7 @@ public class ObdGatewayService extends AbstractGatewayService {
     }
 
     private boolean doSelectProtocol() {
-        final String storedProtocolName =
-                prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
+        final String storedProtocolName = prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
         final ObdProtocols prot = storedProtocolName != null ?
                 ObdProtocols.valueOf(storedProtocolName) : ObdProtocols.ISO_15765_4_CAN_B;
         try {
@@ -133,21 +132,13 @@ public class ObdGatewayService extends AbstractGatewayService {
     protected void executeQueue() {
         isQueueRunning = true;
         while (!jobsQueue.isEmpty()) {
-            ObdCommandJob job = null;
             try {
-                job = jobsQueue.take();
-                // log job
-                if (job.getState().equals(ObdCommandJob.ObdCommandJobState.NEW)) {
-                    job.setState(ObdCommandJob.ObdCommandJobState.RUNNING);
-                    if (backEnd.executeCommand(job.getCommand()) && stateUpdater != null) {
-                        stateUpdater.stateUpdate(job.getCommand());
-                    }
+                final ObdCommandJob job = jobsQueue.take();
+                if (backEnd.executeCommand(job.getCommand()) && stateUpdater != null) {
+                    stateUpdater.stateUpdate(job.getCommand());
                 }
             } catch (final Exception e) {
-                if (job != null) {
-                    job.setState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
-                    ACRA.getErrorReporter().handleSilentException(e);
-                }
+                ACRA.getErrorReporter().handleSilentException(e);
             }
         }
         // will run next time a job is queued

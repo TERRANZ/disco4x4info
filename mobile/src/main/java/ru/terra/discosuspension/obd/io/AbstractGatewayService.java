@@ -10,13 +10,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
-
 public abstract class AbstractGatewayService extends Service {
-    protected boolean isRunning = false;
+
+    protected final BlockingQueue<ObdCommandJob> jobsQueue = new LinkedBlockingQueue<ObdCommandJob>();
     private final IBinder binder = new AbstractGatewayServiceBinder();
+
+    protected boolean isRunning = false;
     protected boolean isQueueRunning = false;
     protected Long queueCounter = 0L;
-    protected final BlockingQueue<ObdCommandJob> jobsQueue = new LinkedBlockingQueue<ObdCommandJob>();
     protected StateUpdater stateUpdater;
 
     @Override
@@ -24,7 +25,7 @@ public abstract class AbstractGatewayService extends Service {
         return binder;
     }
 
-    public void setStateUpdater(StateUpdater stateUpdater) {
+    public void setStateUpdater(final StateUpdater stateUpdater) {
         this.stateUpdater = stateUpdater;
     }
 
@@ -44,8 +45,7 @@ public abstract class AbstractGatewayService extends Service {
         job.setId(queueCounter);
         try {
             jobsQueue.put(job);
-        } catch (InterruptedException e) {
-            job.setState(ObdCommandJob.ObdCommandJobState.QUEUE_ERROR);
+        } catch (final InterruptedException ignored) {
         }
 
         if (!isQueueRunning) {

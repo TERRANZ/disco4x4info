@@ -34,30 +34,30 @@ import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
 import ru.terra.discosuspension.obd.io.StateUpdater;
 
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.GEARBOX_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.REAR_DIFF_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.STEERING_WHEEL_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.SUSPENSION_CONTROL_MODULE;
-import static ru.terra.discosuspension.obd.constants.ControlModuleIDs.TRANSFER_CASE_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleID.GEARBOX_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleID.REAR_DIFF_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleID.STEERING_WHEEL_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleID.SUSPENSION_CONTROL_MODULE;
+import static ru.terra.discosuspension.obd.constants.ControlModuleID.TRANSFER_CASE_CONTROL_MODULE;
 
 public class OBDWorkerService extends IntentService implements StateUpdater {
     private static final String TAG = OBDWorkerService.class.getName();
-
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
+    private final static long SUSP_REQ_DIFF = 1000;
+    private final static long GB_REQ_DIFF = 1000;
+
+    private final ObdResult obdResult = new ObdResult();
+    private final SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(REAR_DIFF_CONTROL_MODULE.getCmId());
+    private final SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(SUSPENSION_CONTROL_MODULE.getCmId());
+    private final SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(TRANSFER_CASE_CONTROL_MODULE.getCmId());
+    private final SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(GEARBOX_CONTROL_MODULE.getCmId());
+    private final SelectControlModuleCommand scmcSteeringWheel = new SelectControlModuleCommand(STEERING_WHEEL_CONTROL_MODULE.getCmId());
     private AbstractGatewayService service;
-    private final SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(REAR_DIFF_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcSuspension = new SelectControlModuleCommand(SUSPENSION_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(TRANSFER_CASE_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(GEARBOX_CONTROL_MODULE);
-    private final SelectControlModuleCommand scmcSteeringWheel = new SelectControlModuleCommand(STEERING_WHEEL_CONTROL_MODULE);
     private int OBD_SLEEP_UPDATE = 0;
     private int OBD_SLEEP_SELECT_CM = 0;
     private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
-    private final static long SUSP_REQ_DIFF = 1000;
-    private final static long GB_REQ_DIFF = 1000;
     private int TCCM_ENG_ROT_BLOCK = 0;
     private boolean stop = false;
-    private final ObdResult obdResult = new ObdResult();
     private SharedPreferences sp;
 
     @Override

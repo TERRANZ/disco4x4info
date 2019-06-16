@@ -5,5 +5,5 @@ package ru.terra.discosuspension.obd.constants;
  * Time: 22:28
  */
 public enum ConnectionStatus {
-    NC, DEV_SELECTED, CONNECTED, RESETTED, PROTOCOL_SELECTED, INWORK, ERROR, DISCONNECTED;
+    NC, DEV_SELECTED, CONNECTED, RESETTED, PROTOCOL_SELECTED, INWORK, ERROR;
 }

@@ -5,7 +5,7 @@ package ru.terra.discosuspension.obd.io.bt.exception;
  * Time: 21:25
  */
 public class BTOBDConnectionException extends Throwable {
-    public BTOBDConnectionException(String detailMessage) {
+    public BTOBDConnectionException(final String detailMessage) {
         super(detailMessage);
     }
 }

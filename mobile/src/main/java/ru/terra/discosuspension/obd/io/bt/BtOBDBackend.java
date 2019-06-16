@@ -20,6 +20,11 @@ import ru.terra.discosuspension.obd.commands.SelectProtocolObdCommand;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
+import static ru.terra.discosuspension.obd.constants.ConnectionStatus.CONNECTED;
+import static ru.terra.discosuspension.obd.constants.ConnectionStatus.ERROR;
+import static ru.terra.discosuspension.obd.constants.ConnectionStatus.PROTOCOL_SELECTED;
+import static ru.terra.discosuspension.obd.constants.ConnectionStatus.RESETTED;
+
 /**
  * Date: 12.02.15
  * Time: 21:20
@@ -53,14 +58,14 @@ public class BtOBDBackend implements OBDBackend {
             // Instantiate a BluetoothSocket for the remote device and connect it.
             sock = dev.createInsecureRfcommSocketToServiceRecord(MY_UUID);
             sock.connect();
-            sendStatus("Подключено", false);
-            connectionStatus = ConnectionStatus.CONNECTED;
+            sendStatus("Подключено", true);
+            connectionStatus = CONNECTED;
         } catch (final Exception e1) {
             Logger.e(TAG, "There was an error while establishing Bluetooth connection. Falling back..", e1);
             if (sock == null) {
                 sendStatus("Ошибка: Bluetooth отключен", false);
                 disconnect();
-                connectionStatus = ConnectionStatus.ERROR;
+                connectionStatus = ERROR;
                 throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
             }
             Class<?> clazz = sock.getRemoteDevice().getClass();
@@ -70,13 +75,13 @@ public class BtOBDBackend implements OBDBackend {
                 final BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
                 sockFallback.connect();
                 sock = sockFallback;
-                sendStatus("Подключено", false);
-                connectionStatus = ConnectionStatus.CONNECTED;
+                sendStatus("Подключено", true);
+                connectionStatus = CONNECTED;
             } catch (final Exception e2) {
                 Logger.e(TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
                 sendStatus("Ошибка: Невозможно подключиться к адаптеру", false);
                 disconnect();
-                connectionStatus = ConnectionStatus.ERROR;
+                connectionStatus = ERROR;
                 throw new BTOBDConnectionException("Ошибка: Невозможно подключиться к адаптеру");
             }
         }
@@ -101,12 +106,12 @@ public class BtOBDBackend implements OBDBackend {
         if (executeCommand(new ObdResetFixCommand())) {
             sendStatus("Сброс адаптера", false);
             if (executeCommand(new DisplayHeaderCommand())) {
-                connectionStatus = ConnectionStatus.RESETTED;
+                connectionStatus = RESETTED;
             } else {
-                connectionStatus = ConnectionStatus.ERROR;
+                connectionStatus = ERROR;
             }
         } else {
-            connectionStatus = ConnectionStatus.ERROR;
+            connectionStatus = ERROR;
         }
 
     }
@@ -118,12 +123,12 @@ public class BtOBDBackend implements OBDBackend {
         Logger.d(TAG, "Selecting protocol: " + prot.name());
         if (executeCommand(new SelectProtocolObdCommand(prot))) {
             sendStatus("Выставление протокола", false);
-            connectionStatus = ConnectionStatus.PROTOCOL_SELECTED;
+            connectionStatus = PROTOCOL_SELECTED;
             sendStatus("В работе", true);
             connectionStatus = ConnectionStatus.INWORK;
         } else {
             Logger.w(TAG, "Unable to select protocol");
-            connectionStatus = ConnectionStatus.ERROR;
+            connectionStatus = ERROR;
             throw new BTOBDConnectionException("Unable to select protocol");
         }
     }
