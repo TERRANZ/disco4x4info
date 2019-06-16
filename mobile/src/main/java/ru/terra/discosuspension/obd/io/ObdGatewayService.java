@@ -7,6 +7,7 @@ import android.util.Log;
 
 import org.acra.ACRA;
 
+import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import ru.terra.discosuspension.Logger;
 import ru.terra.discosuspension.NotificationInstance;
@@ -16,6 +17,8 @@ import ru.terra.discosuspension.obd.OBDBackend;
 import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.bt.BtOBDBackend;
 import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
+
+import static pt.lighthouselabs.obd.enums.ObdProtocols.ISO_15765_4_CAN_B;
 
 public class ObdGatewayService extends AbstractGatewayService {
 
@@ -41,7 +44,6 @@ public class ObdGatewayService extends AbstractGatewayService {
 
             if (backEnd.getConnectionStatus() == ConnectionStatus.INWORK) {
                 stop = true;
-                queueCounter = 0L;
                 Logger.d(TAG, "Gateway service started");
                 isRunning = true;
             } else if (backEnd.getConnectionStatus() == ConnectionStatus.ERROR) {
@@ -81,8 +83,7 @@ public class ObdGatewayService extends AbstractGatewayService {
 
     private boolean doSelectProtocol() {
         final String storedProtocolName = prefs.getString(getApplicationContext().getString(R.string.obd_protocol), null);
-        final ObdProtocols prot = storedProtocolName != null ?
-                ObdProtocols.valueOf(storedProtocolName) : ObdProtocols.ISO_15765_4_CAN_B;
+        final ObdProtocols prot = storedProtocolName != null ? ObdProtocols.valueOf(storedProtocolName) : ISO_15765_4_CAN_B;
         try {
             backEnd.doSelectProtocol(prot);
         } catch (final BTOBDConnectionException e) {
@@ -133,9 +134,9 @@ public class ObdGatewayService extends AbstractGatewayService {
         isQueueRunning = true;
         while (!jobsQueue.isEmpty()) {
             try {
-                final ObdCommandJob job = jobsQueue.take();
-                if (backEnd.executeCommand(job.getCommand()) && stateUpdater != null) {
-                    stateUpdater.stateUpdate(job.getCommand());
+                final ObdProtocolCommand cmd = jobsQueue.take();
+                if (backEnd.executeCommand(cmd) && stateUpdater != null) {
+                    stateUpdater.stateUpdate(cmd);
                 }
             } catch (final Exception e) {
                 ACRA.getErrorReporter().handleSilentException(e);

@@ -12,12 +12,11 @@ import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 
 public abstract class AbstractGatewayService extends Service {
 
-    protected final BlockingQueue<ObdCommandJob> jobsQueue = new LinkedBlockingQueue<ObdCommandJob>();
+    protected final BlockingQueue<ObdProtocolCommand> jobsQueue = new LinkedBlockingQueue<>();
     private final IBinder binder = new AbstractGatewayServiceBinder();
 
     protected boolean isRunning = false;
     protected boolean isQueueRunning = false;
-    protected Long queueCounter = 0L;
     protected StateUpdater stateUpdater;
 
     @Override
@@ -40,11 +39,8 @@ public abstract class AbstractGatewayService extends Service {
     }
 
     public void queueCmd(final ObdProtocolCommand cmd) {
-        queueCounter++;
-        final ObdCommandJob job = new ObdCommandJob(cmd);
-        job.setId(queueCounter);
         try {
-            jobsQueue.put(job);
+            jobsQueue.put(cmd);
         } catch (final InterruptedException ignored) {
         }
 
