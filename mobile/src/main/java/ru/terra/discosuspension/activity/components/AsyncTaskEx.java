@@ -9,14 +9,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public abstract class AsyncTaskEx<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> {
-    private TimerTask timerTask;
-    protected WeakReference<Context> context;
-    protected Exception exception;
+    protected final WeakReference<Context> context;
     ProgressDialog progressDialog;
 
-    AsyncTaskEx(Long delay, Context context) {
+    AsyncTaskEx(final Long delay, final Context context) {
         this.context = new WeakReference<>(context);
-        timerTask = new TimerTask() {
+        final TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 AsyncTaskEx.this.cancel(true);
@@ -37,7 +35,7 @@ public abstract class AsyncTaskEx<Params, Progress, Result> extends AsyncTask<Pa
         try {
             if (progressDialog != null && progressDialog.isShowing())
                 progressDialog.dismiss();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 

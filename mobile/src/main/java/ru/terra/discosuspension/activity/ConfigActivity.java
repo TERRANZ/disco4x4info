@@ -24,9 +24,9 @@ public class ConfigActivity extends PreferenceActivity implements
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
 
-        ArrayList<CharSequence> pairedDeviceStrings = new ArrayList<CharSequence>();
-        ArrayList<CharSequence> vals = new ArrayList<CharSequence>();
-        ListPreference listBtDevices = (ListPreference) getPreferenceScreen()
+        final ArrayList<CharSequence> pairedDeviceStrings = new ArrayList<CharSequence>();
+        final ArrayList<CharSequence> vals = new ArrayList<CharSequence>();
+        final ListPreference listBtDevices = (ListPreference) getPreferenceScreen()
                 .findPreference(BLUETOOTH_LIST_KEY);
         final BluetoothAdapter mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
@@ -55,7 +55,7 @@ public class ConfigActivity extends PreferenceActivity implements
             return true;
         });
 
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
+        final Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 pairedDeviceStrings.add(device.getName() + "\n" + device.getAddress());

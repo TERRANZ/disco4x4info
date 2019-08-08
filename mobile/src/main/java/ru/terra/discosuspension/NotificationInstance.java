@@ -27,15 +27,15 @@ public class NotificationInstance {
     }
 
     public void createInfoNotification(final String message, final boolean finalMessage) {
-        String CHANNEL_ID = "my_channel_01";// The id of the channel.
-        NotificationManager mNotificationManager =
+        final String CHANNEL_ID = "my_channel_01";// The id of the channel.
+        final NotificationManager mNotificationManager =
                 (NotificationManager) contextWeakReference.get().getSystemService(Context.NOTIFICATION_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, "4x4Info", IMPORTANCE_LOW);
             mNotificationManager.createNotificationChannel(mChannel);
         }
 
-        Notification notify = new NotificationCompat.Builder(contextWeakReference.get())
+        final Notification notify = new NotificationCompat.Builder(contextWeakReference.get())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("4x4 Info")
                 .setContentText(message)

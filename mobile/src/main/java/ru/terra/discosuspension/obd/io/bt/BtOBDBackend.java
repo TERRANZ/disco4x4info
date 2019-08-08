@@ -32,6 +32,7 @@ import static ru.terra.discosuspension.obd.constants.ConnectionStatus.RESETTED;
 public class BtOBDBackend implements OBDBackend {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final String TAG = BtOBDBackend.class.getName();
+
     private BluetoothSocket sock = null;
     private String remoteDevice;
     private ConnectionStatus connectionStatus = ConnectionStatus.NC;

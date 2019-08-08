@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -20,14 +21,14 @@ import ru.terra.discosuspension.service.OBDWorkerService;
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class FourXFourInfoActivity extends AppCompatActivity {
-    private static final String TAG = FourXFourInfoActivity.class.getName();
+    private static final String SUSP = "susp";
+    private static final String WHEEL = "wheel";
 
     private TextView tv_gb_temp, tv_tb_temp, tv_rd_temp, tv_gear, tv_curr_gear, tv_tc_rot, tv_tc_sol_len, tv_range, tv_gb_shit_pos;
     private TextView tv_w_fl, tv_w_rl, tv_w_rr, tv_w_fr;
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
     private Gauge gauge_steering_wheel_pos;
-    private CheckBox cb_wheel, cb_susp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +60,21 @@ public class FourXFourInfoActivity extends AppCompatActivity {
 
         gauge_steering_wheel_pos = findViewById(R.id.gauge_steering_wheel_pos);
 
-        cb_susp = findViewById(R.id.cb_susp);
-        cb_wheel = findViewById(R.id.cb_wheel);
+        final CheckBox cb_susp = findViewById(R.id.cb_susp);
+        final CheckBox cb_wheel = findViewById(R.id.cb_wheel);
 
-        cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("susp", isChecked).apply());
-        cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean("wheel", isChecked).apply());
+        final SharedPreferences sharedProps = getDefaultSharedPreferences(getApplicationContext());
+
+        cb_susp.setChecked(sharedProps.getBoolean(SUSP, true));
+        cb_wheel.setChecked(sharedProps.getBoolean(WHEEL, true));
+
+        cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(SUSP, isChecked).apply());
+        cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(WHEEL, isChecked).apply());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                ObdResult result = (ObdResult) intent.getSerializableExtra("result");
+                final ObdResult result = (ObdResult) intent.getSerializableExtra("result");
                 tv_gb_temp.setText(result.gbTemp);
                 tv_tb_temp.setText(result.tcTemp);
                 tv_rd_temp.setText(result.rdTemp);

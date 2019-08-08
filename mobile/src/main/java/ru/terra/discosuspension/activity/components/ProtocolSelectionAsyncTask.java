@@ -23,7 +23,7 @@ public class ProtocolSelectionAsyncTask extends AsyncTaskEx<Void, String, String
     private static final String TAG = ProtocolSelectionAsyncTask.class.getName();
     private final OBDBackend obdBackend;
 
-    public ProtocolSelectionAsyncTask(Context a, OBDBackend obdBackend) {
+    public ProtocolSelectionAsyncTask(final Context a, final OBDBackend obdBackend) {
         super(300000L, a);
         this.obdBackend = obdBackend;
         showDialog("Определение протокола", "Запуск...");
