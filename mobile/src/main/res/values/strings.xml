@@ -21,4 +21,11 @@
     <string name="tc_rot">Угол пов. мот. разд.</string>
     <string name="tc_sol">Положение соленоида</string>
     <string name="gb_shift">Переключатель передач</string>
+    <string name="msg_service_connected">Service connected, starting queue</string>
+    <string name="msg_err_service_not_started">Не запустился сервис</string>
+    <string name="msg_stopping_service">Stopping service</string>
+    <string name="pref_key_susp">susp</string>
+    <string name="pref_key_wheel">wheel</string>
+    <string name="ui_tc_sol_pos_hi">Hi</string>
+    <string name="ui_tc_sol_pos_lo">Lo</string>
 </resources>

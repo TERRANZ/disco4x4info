@@ -19,6 +19,7 @@ import ru.terra.discosuspension.activity.components.ObdResult;
 import ru.terra.discosuspension.service.OBDWorkerService;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+import static ru.terra.discosuspension.Constants.UPDATE_INTENT_RESULT;
 
 public class FourXFourInfoActivity extends AppCompatActivity {
     private static final String SUSP = "susp";
@@ -74,7 +75,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                final ObdResult result = (ObdResult) intent.getSerializableExtra("result");
+                final ObdResult result = (ObdResult) intent.getSerializableExtra(UPDATE_INTENT_RESULT);
                 tv_gb_temp.setText(result.gbTemp);
                 tv_tb_temp.setText(result.tcTemp);
                 tv_rd_temp.setText(result.rdTemp);

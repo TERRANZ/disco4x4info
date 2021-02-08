@@ -34,6 +34,8 @@ import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
 import ru.terra.discosuspension.obd.io.StateUpdater;
 
+import static ru.terra.discosuspension.Constants.UPDATE_INTENT_ACTION;
+import static ru.terra.discosuspension.Constants.UPDATE_INTENT_RESULT;
 import static ru.terra.discosuspension.obd.constants.ControlModuleID.GEARBOX_CONTROL_MODULE;
 import static ru.terra.discosuspension.obd.constants.ControlModuleID.REAR_DIFF_CONTROL_MODULE;
 import static ru.terra.discosuspension.obd.constants.ControlModuleID.STEERING_WHEEL_CONTROL_MODULE;
@@ -45,6 +47,9 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
     private static final Map<Class, CommandHandler> dispatch = new HashMap<>();
     private final static long SUSP_REQ_DIFF = 1000;
     private final static long GB_REQ_DIFF = 1000;
+    private static final int DEF_VALUE_TIMING = 20;
+    private static final int DEF_VALUE_ENG_ROT = 180;
+    private static final int SUSP_SHIFT = 10;
 
     private final ObdResult obdResult = new ObdResult();
     private final SelectControlModuleCommand scmcRearDiff = new SelectControlModuleCommand(REAR_DIFF_CONTROL_MODULE.getCmId());
@@ -68,8 +73,8 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
         }
 
         final Intent resultIntent = new Intent();
-        resultIntent.setAction("update");
-        resultIntent.putExtra("result", obdResult);
+        resultIntent.setAction(UPDATE_INTENT_ACTION);
+        resultIntent.putExtra(UPDATE_INTENT_RESULT, obdResult);
         LocalBroadcastManager.getInstance(this).sendBroadcast(resultIntent);
     }
 
@@ -86,11 +91,11 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
             service.setStateUpdater(OBDWorkerService.this);
-            Logger.i(TAG, "Service connected, starting queue");
+            Logger.i(TAG, getString(R.string.msg_service_connected));
 
             if (!service.isRunning())
                 if (!service.startService()) {
-                    Toast.makeText(getApplicationContext(), "Не запустился сервис", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), R.string.msg_err_service_not_started, Toast.LENGTH_LONG).show();
                     stop = true;
                     stopSelf();
                     return;
@@ -107,9 +112,9 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
     @Override
     protected void onHandleIntent(Intent intent) {
         sp = PreferenceManager.getDefaultSharedPreferences(this);
-        OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), 20);
-        OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), 20);
-        TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), 180);
+        OBD_SLEEP_SELECT_CM = sp.getInt(getString(R.string.obd_sleep_select_cm), DEF_VALUE_TIMING);
+        OBD_SLEEP_UPDATE = sp.getInt(getString(R.string.obd_sleep_update), DEF_VALUE_TIMING);
+        TCCM_ENG_ROT_BLOCK = sp.getInt(getString(R.string.tccm_eng_rot_block), DEF_VALUE_ENG_ROT);
 
         fillDispatcher();
 
@@ -131,7 +136,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
         unbindService(serviceConn);
         service = null;
         stopService(new Intent(this, ObdGatewayService.class));
-        Logger.i(TAG, "Stopping service");
+        Logger.i(TAG, getString(R.string.msg_stopping_service));
     }
 
     private final Runnable mQueueCommands = new Runnable() {
@@ -140,7 +145,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
                 //Rear diff
                 addRDCMCommands();
                 //suspension
-                if (sp.getBoolean("susp", true)) {
+                if (sp.getBoolean(getString(R.string.pref_key_susp), true)) {
                     addSuspensionCommands();
                 }
                 //transfer case
@@ -148,7 +153,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
                 //gearbox
                 addGearBoxCommands();
                 //steering wheel
-                if (sp.getBoolean("wheel", true)) {
+                if (sp.getBoolean(getString(R.string.pref_key_wheel), true)) {
                     addSteeringWheelCommands();
                 }
             }
@@ -229,7 +234,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
 
         dispatch.put(TransferCaseSolenoidPositionCommand.class, cmd -> {
             obdResult.tcSolLen = cmd.getFormattedResult();
-            obdResult.tcSolPos = ((TransferCaseSolenoidPositionCommand) cmd).isHi() ? "Hi" : "Lo";
+            obdResult.tcSolPos = ((TransferCaseSolenoidPositionCommand) cmd).isHi() ? getString(R.string.ui_tc_sol_pos_hi) : getString(R.string.ui_tc_sol_pos_lo);
         });
 
         dispatch.put(TransferCaseTempCommand.class, cmd ->
@@ -248,22 +253,22 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
             final SuspensionHeightCommand shc = (SuspensionHeightCommand) cmd;
             switch (shc.getWheel()) {
                 case SuspensionHeightCommand.FRONT_LEFT: {
-                    obdResult.suspFLVal = (int) (shc.calc() + 10);
+                    obdResult.suspFLVal = (int) (shc.calc() + SUSP_SHIFT);
                     obdResult.suspFLText = cmd.getFormattedResult();
                 }
                 break;
                 case SuspensionHeightCommand.FRONT_RIGHT: {
-                    obdResult.suspFRVal = (int) (shc.calc() + 10);
+                    obdResult.suspFRVal = (int) (shc.calc() + SUSP_SHIFT);
                     obdResult.suspFRText = cmd.getFormattedResult();
                 }
                 break;
                 case SuspensionHeightCommand.REAR_LEFT: {
-                    obdResult.suspRLVal = (int) (shc.calc() + 10);
+                    obdResult.suspRLVal = (int) (shc.calc() + SUSP_SHIFT);
                     obdResult.suspRLText = cmd.getFormattedResult();
                 }
                 break;
                 case SuspensionHeightCommand.REAR_RIGHT: {
-                    obdResult.suspRRVal = (int) (shc.calc() + 10);
+                    obdResult.suspRRVal = (int) (shc.calc() + SUSP_SHIFT);
                     obdResult.suspRRText = cmd.getFormattedResult();
                 }
                 break;

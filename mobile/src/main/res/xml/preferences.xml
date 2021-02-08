@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="OBD Preferences">
+    <PreferenceCategory android:title="Настройки подключения">
         <ListPreference
             android:dialogTitle="Bluetooth Devices"
             android:key="bluetooth_list_preference"
-            android:summary="List of paired bluetooth devices."
-            android:title="Bluetooth Devices" />
+            android:summary="Список недавних устройств"
+            android:title="Устройства bluetooth" />
 
         <ListPreference
             android:dialogTitle="ODB Protocol"
-            android:key="obd_protocol"
-            android:summary="List of protocols"
-            android:title="Obd protocol"
             android:entries="@array/protocolsNamesArray"
-            android:entryValues="@array/protocolsArray"/>
+            android:entryValues="@array/protocolsArray"
+            android:key="obd_protocol"
+            android:summary="Список протоколов"
+            android:title="Протокол OBD2" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Тайминги">
 
@@ -21,21 +21,18 @@
             android:defaultValue="10"
             android:key="@string/obd_sleep_update"
             android:maxLength="4"
-            android:numeric="integer"
             android:title="@string/obd_sleep_update_title" />
 
         <ru.terra.discosuspension.activity.components.IntEditTextPreference
             android:defaultValue="20"
             android:key="@string/obd_sleep_select_cm"
             android:maxLength="4"
-            android:numeric="integer"
             android:title="@string/obd_sleep_select_cm_title" />
 
         <ru.terra.discosuspension.activity.components.IntEditTextPreference
             android:defaultValue="180"
             android:key="@string/tccm_eng_rot_block"
             android:maxLength="4"
-            android:numeric="integer"
             android:title="@string/tccm_eng_rot_block_title" />
     </PreferenceCategory>
 
