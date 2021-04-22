@@ -43,12 +43,14 @@ public class ObdGatewayService extends AbstractGatewayService {
             doStep();
 
             if (backEnd.getConnectionStatus() == ConnectionStatus.INWORK) {
-                stop = true;
                 Logger.d(TAG, "Gateway service started");
+                stop = true;
                 isRunning = true;
             } else if (backEnd.getConnectionStatus() == ConnectionStatus.ERROR) {
                 Logger.d(TAG, "Gateway service error!");
                 backEnd.disconnect();
+                stop = true;
+                isRunning = false;
             }
         }
 

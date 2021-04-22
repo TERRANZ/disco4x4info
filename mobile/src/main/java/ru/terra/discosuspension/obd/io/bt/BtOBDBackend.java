@@ -21,6 +21,7 @@ import ru.terra.discosuspension.obd.constants.ConnectionStatus;
 import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
 import static ru.terra.discosuspension.obd.constants.ConnectionStatus.CONNECTED;
+import static ru.terra.discosuspension.obd.constants.ConnectionStatus.DEV_SELECTED;
 import static ru.terra.discosuspension.obd.constants.ConnectionStatus.ERROR;
 import static ru.terra.discosuspension.obd.constants.ConnectionStatus.PROTOCOL_SELECTED;
 import static ru.terra.discosuspension.obd.constants.ConnectionStatus.RESETTED;
@@ -42,10 +43,11 @@ public class BtOBDBackend implements OBDBackend {
         this.remoteDevice = remoteDevice;
         Logger.d(TAG, "Starting service..");
         if (remoteDevice == null || remoteDevice.isEmpty()) {
-            connectionStatus = ConnectionStatus.NC;
+            connectionStatus = ERROR;
             throw new BTOBDConnectionException("No Bluetooth device has been selected.");
+        } else {
+            connectionStatus = DEV_SELECTED;
         }
-        connectionStatus = ConnectionStatus.DEV_SELECTED;
     }
 
     @Override
@@ -76,7 +78,7 @@ public class BtOBDBackend implements OBDBackend {
                 final BluetoothSocket sockFallback = (BluetoothSocket) m.invoke(sock.getRemoteDevice(), new Object[]{1});
                 sockFallback.connect();
                 sock = sockFallback;
-                sendStatus("Подключено", true);
+                sendStatus("Подключено", false);
                 connectionStatus = CONNECTED;
             } catch (final Exception e2) {
                 Logger.e(TAG, "Couldn't fallback while establishing Bluetooth connection. Stopping app..", e2);
@@ -99,7 +101,7 @@ public class BtOBDBackend implements OBDBackend {
             }
 
         connectionStatus = ConnectionStatus.NC;
-        sendStatus("Отключено", true);
+        sendStatus("Отключено", false);
     }
 
     @Override
