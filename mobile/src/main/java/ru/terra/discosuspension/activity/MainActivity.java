@@ -1,7 +1,11 @@
 package ru.terra.discosuspension.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -18,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void start(View view) {
-        startActivity(new Intent(this, FourXFourInfoActivity.class));
+        if (checkAndRequestPermissions())
+            startActivity(new Intent(this, FourXFourInfoActivity.class));
     }
 
     public void config(View view) {
@@ -27,5 +32,22 @@ public class MainActivity extends AppCompatActivity {
 
     public void selectProtocol(View view) {
         new ProtocolSelectionAsyncTask(this, new BtOBDBackend()).execute();
+    }
+
+    private boolean checkAndRequestPermissions() {
+        int bt = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
+        int btAdmin = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN);
+        int internet = ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET);
+
+        if (bt != PackageManager.PERMISSION_GRANTED
+                || btAdmin != PackageManager.PERMISSION_GRANTED
+                || internet != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.BLUETOOTH,
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.INTERNET}, 1);
+            return false;
+        }
+        return true;
     }
 }
