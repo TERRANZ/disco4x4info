@@ -7,10 +7,10 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,6 @@ import ru.terra.discosuspension.obd.commands.disco3.SuspensionHeightCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseRotEngCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseSolenoidPositionCommand;
 import ru.terra.discosuspension.obd.commands.disco3.TransferCaseTempCommand;
-import ru.terra.discosuspension.obd.io.AbstractGatewayService;
 import ru.terra.discosuspension.obd.io.ObdGatewayService;
 import ru.terra.discosuspension.obd.io.StateUpdater;
 
@@ -57,7 +56,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
     private final SelectControlModuleCommand scmcTC = new SelectControlModuleCommand(TRANSFER_CASE_CONTROL_MODULE.getCmId());
     private final SelectControlModuleCommand scmcGearBox = new SelectControlModuleCommand(GEARBOX_CONTROL_MODULE.getCmId());
     private final SelectControlModuleCommand scmcSteeringWheel = new SelectControlModuleCommand(STEERING_WHEEL_CONTROL_MODULE.getCmId());
-    private AbstractGatewayService service;
+    private ObdGatewayService service;
     private int OBD_SLEEP_UPDATE = 0;
     private int OBD_SLEEP_SELECT_CM = 0;
     private long lastSuspensionRequest, lastGBRequest = System.currentTimeMillis();
@@ -89,19 +88,19 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
     private ServiceConnection serviceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
-            service = ((AbstractGatewayService.AbstractGatewayServiceBinder) binder).getService();
+            service = ((ObdGatewayService.ObdGatewayServiceServiceBinder) binder).getService();
             service.setStateUpdater(OBDWorkerService.this);
             Logger.i(TAG, getString(R.string.msg_service_connected));
 
-            if (!service.isRunning())
-                if (!service.startService()) {
-                    Toast.makeText(getApplicationContext(), R.string.msg_err_service_not_started, Toast.LENGTH_LONG).show();
+            if (!service.isRunning()) {
+                if (!service.initObdBackend()) {
+//                        Toast.makeText(getApplicationContext(), R.string.msg_err_service_not_started, Toast.LENGTH_LONG).show();
                     stop = true;
                     stopSelf();
-                    return;
+                } else {
+                    new Handler(new HandlerThread("ObdThread").getLooper()).post(mQueueCommands);
                 }
-
-            new Handler().post(mQueueCommands);
+            }
         }
 
         @Override

@@ -1,11 +1,17 @@
 package ru.terra.discosuspension.obd.io;
 
+import android.app.Service;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.acra.ACRA;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import pt.lighthouselabs.obd.commands.protocol.ObdProtocolCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
@@ -20,14 +26,52 @@ import ru.terra.discosuspension.obd.io.bt.exception.BTOBDConnectionException;
 
 import static pt.lighthouselabs.obd.enums.ObdProtocols.ISO_15765_4_CAN_B;
 
-public class ObdGatewayService extends AbstractGatewayService {
+public class ObdGatewayService extends Service {
 
     private static final String TAG = ObdGatewayService.class.getName();
 
     private OBDBackend backEnd;
     private SharedPreferences prefs;
+    protected final BlockingQueue<ObdProtocolCommand> jobsQueue = new LinkedBlockingQueue<>();
+    private final IBinder binder = new ObdGatewayServiceServiceBinder();
 
-    public boolean startService() {
+    protected boolean isRunning = false;
+    protected boolean isQueueRunning = false;
+    protected StateUpdater stateUpdater;
+    
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+
+    public void setStateUpdater(final StateUpdater stateUpdater) {
+        this.stateUpdater = stateUpdater;
+    }
+
+    public class ObdGatewayServiceServiceBinder extends Binder {
+        public ObdGatewayService getService() {
+            return ObdGatewayService.this;
+        }
+    }
+
+    public void queueCmd(final ObdProtocolCommand cmd) {
+        try {
+            jobsQueue.put(cmd);
+        } catch (final InterruptedException ignored) {
+        }
+
+        if (!isQueueRunning) {
+            new Thread(this::executeQueue).start();
+        }
+    }
+
+    public int getCurrentQueueSize() {
+        synchronized (jobsQueue) {
+            return jobsQueue.size();
+        }
+    }
+
+    public boolean initObdBackend() {
         backEnd = new BtOBDBackend();
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
@@ -40,7 +84,7 @@ public class ObdGatewayService extends AbstractGatewayService {
                 e.printStackTrace();
             }
 
-            doStep();
+            doBackendPreparationStep();
 
             if (backEnd.getConnectionStatus() == ConnectionStatus.INWORK) {
                 Logger.d(TAG, "Gateway service started");
@@ -57,7 +101,7 @@ public class ObdGatewayService extends AbstractGatewayService {
         return isRunning;
     }
 
-    private void doStep() {
+    private void doBackendPreparationStep() {
         Log.i(TAG, "doStep: curr status: " + backEnd.getConnectionStatus().name());
         switch (backEnd.getConnectionStatus()) {
             case NC:
