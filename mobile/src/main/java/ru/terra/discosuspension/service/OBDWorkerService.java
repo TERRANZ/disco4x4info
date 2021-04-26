@@ -98,7 +98,7 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
                     stop = true;
                     stopSelf();
                 } else {
-                    new Handler(new HandlerThread("ObdThread").getLooper()).post(mQueueCommands);
+                    new Handler().post(mQueueCommands);
                 }
             }
         }
