@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -14,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import de.nitri.gauge.Gauge;
+import ru.terra.discosuspension.Constants;
 import ru.terra.discosuspension.R;
 import ru.terra.discosuspension.activity.components.ObdResult;
 import ru.terra.discosuspension.service.OBDWorkerService;
@@ -30,6 +30,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     private ProgressBar pb_front_left, pb_front_right, pb_rear_left, pb_rear_right;
     private ImageView iv_rear_diff_lock, iv_central_diff_lock;
     private Gauge gauge_steering_wheel_pos;
+    private BroadcastReceiver updateBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +73,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(SUSP, isChecked).apply());
         cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(WHEEL, isChecked).apply());
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+        updateBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 final ObdResult result = (ObdResult) intent.getSerializableExtra(UPDATE_INTENT_RESULT);
@@ -109,7 +110,9 @@ public class FourXFourInfoActivity extends AppCompatActivity {
                 tv_gear.setText(result.driveShiftPos);
                 gauge_steering_wheel_pos.setValue(result.wheelPos);
             }
-        }, new IntentFilter("update"));
+        };
+
+        registerReceiver(updateBroadcastReceiver, new IntentFilter(Constants.UPDATE_INTENT_ACTION));
     }
 
     @Override
@@ -123,6 +126,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         doUnbindService();
+        unregisterReceiver(updateBroadcastReceiver);
     }
 
     private void doUnbindService() {

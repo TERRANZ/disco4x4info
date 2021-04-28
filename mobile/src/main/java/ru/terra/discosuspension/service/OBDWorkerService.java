@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +75,8 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
         final Intent resultIntent = new Intent();
         resultIntent.setAction(UPDATE_INTENT_ACTION);
         resultIntent.putExtra(UPDATE_INTENT_RESULT, obdResult);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(resultIntent);
+        Log.d(TAG,"Updating state with " + obdResult.toString());
+        sendBroadcast(resultIntent);
     }
 
     private interface CommandHandler {
@@ -94,7 +96,6 @@ public class OBDWorkerService extends IntentService implements StateUpdater {
 
             if (!service.isRunning()) {
                 if (!service.initObdBackend()) {
-//                        Toast.makeText(getApplicationContext(), R.string.msg_err_service_not_started, Toast.LENGTH_LONG).show();
                     stop = true;
                     stopSelf();
                 } else {
