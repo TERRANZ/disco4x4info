@@ -70,8 +70,8 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         cb_susp.setChecked(sharedProps.getBoolean(SUSP, true));
         cb_wheel.setChecked(sharedProps.getBoolean(WHEEL, true));
 
-        cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(SUSP, isChecked).apply());
-        cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(WHEEL, isChecked).apply());
+        cb_susp.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(SUSP, isChecked).commit());
+        cb_wheel.setOnCheckedChangeListener((buttonView, isChecked) -> sharedProps.edit().putBoolean(WHEEL, isChecked).commit());
 
         updateBroadcastReceiver = new BroadcastReceiver() {
             @Override
