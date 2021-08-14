@@ -15,7 +15,7 @@ import android.widget.TextView;
 import de.nitri.gauge.Gauge;
 import ru.terra.discosuspension.Constants;
 import ru.terra.discosuspension.R;
-import ru.terra.discosuspension.activity.components.ObdResult;
+import ru.terra.discosuspension.activity.components.ObdState;
 import ru.terra.discosuspension.service.OBDWorkerService;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
@@ -76,7 +76,7 @@ public class FourXFourInfoActivity extends AppCompatActivity {
         updateBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                final ObdResult result = (ObdResult) intent.getSerializableExtra(UPDATE_INTENT_RESULT);
+                final ObdState result = (ObdState) intent.getSerializableExtra(UPDATE_INTENT_RESULT);
                 tv_gb_temp.setText(result.gbTemp);
                 tv_tb_temp.setText(result.tcTemp);
                 tv_rd_temp.setText(result.rdTemp);

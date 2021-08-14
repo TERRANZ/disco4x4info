@@ -38,14 +38,20 @@ public class MainActivity extends AppCompatActivity {
         int bt = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH);
         int btAdmin = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN);
         int internet = ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET);
+        int filesWrite = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int filesRead = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
         if (bt != PackageManager.PERMISSION_GRANTED
                 || btAdmin != PackageManager.PERMISSION_GRANTED
-                || internet != PackageManager.PERMISSION_GRANTED) {
+                || internet != PackageManager.PERMISSION_GRANTED
+                || filesWrite != PackageManager.PERMISSION_GRANTED
+                || filesRead != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.BLUETOOTH,
                             Manifest.permission.BLUETOOTH_ADMIN,
-                            Manifest.permission.INTERNET}, 1);
+                            Manifest.permission.INTERNET,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             return false;
         }
         return true;
